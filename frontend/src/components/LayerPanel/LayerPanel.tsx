@@ -48,7 +48,15 @@ export const LayerPanel: React.FC<LayerPanelProps> = ({
 
     const objects = canvas.getObjects();
     
-    return objects.map((obj, index) => {
+    // Filter out temporary crop tools and other temporary objects
+    const filteredObjects = objects.filter(obj => {
+      const anyObj = obj as any;
+      return !anyObj.isCropTool && 
+             !anyObj.isTemporary && 
+             anyObj.id !== 'crop-rectangle';
+    });
+    
+    return filteredObjects.map((obj, index) => {
       // Generate unique ID if not present
       const id = (obj as any).id || `layer_${Date.now()}_${index}`;
       if (!(obj as any).id) {

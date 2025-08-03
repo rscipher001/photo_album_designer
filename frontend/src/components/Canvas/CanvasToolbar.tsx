@@ -114,6 +114,8 @@ export function CanvasToolbar({
     if (!canvas || !selectedObject || selectedObject.type !== 'image') return;
 
     const image = selectedObject as fabric.Image;
+    
+    // Get the actual bounding rectangle of the image on the canvas
     const imageBounds = image.getBoundingRect();
 
     // Deselect all objects and make image non-selectable during crop
@@ -123,9 +125,10 @@ export function CanvasToolbar({
       evented: false
     });
 
-    // Create crop rectangle (initially covers 80% of the image)
-    const cropWidth = imageBounds.width * 0.8;
-    const cropHeight = imageBounds.height * 0.8;
+    // Create crop rectangle that initially covers 80% of the image, centered
+    const cropMargin = 0.1; // 10% margin on each side
+    const cropWidth = imageBounds.width * (1 - cropMargin * 2);
+    const cropHeight = imageBounds.height * (1 - cropMargin * 2);
     const cropLeft = imageBounds.left + (imageBounds.width - cropWidth) / 2;
     const cropTop = imageBounds.top + (imageBounds.height - cropHeight) / 2;
 
@@ -198,25 +201,48 @@ export function CanvasToolbar({
     // Apply crop function
     const applyCrop = () => {
       const cropBounds = cropRect.getBoundingRect();
-      const imageBounds = targetImage.getBoundingRect();
-
-      // Calculate crop parameters relative to the original image
-      const scaleX = targetImage.scaleX || 1;
-      const scaleY = targetImage.scaleY || 1;
       
-      // Calculate the crop area relative to the image's original dimensions
-      const relativeLeft = (cropBounds.left - imageBounds.left) / scaleX;
-      const relativeTop = (cropBounds.top - imageBounds.top) / scaleY;
-      const relativeWidth = cropBounds.width / scaleX;
-      const relativeHeight = cropBounds.height / scaleY;
+      // Get the canvas bounding rect for the image
+      const imageBounds = targetImage.getBoundingRect();
+      
+      console.log('Crop bounds:', cropBounds);
+      console.log('Image bounds:', imageBounds);
+      
+      // Calculate intersection between crop rectangle and image
+      const cropLeft = Math.max(cropBounds.left, imageBounds.left);
+      const cropTop = Math.max(cropBounds.top, imageBounds.top);
+      const cropRight = Math.min(cropBounds.left + cropBounds.width, imageBounds.left + imageBounds.width);
+      const cropBottom = Math.min(cropBounds.top + cropBounds.height, imageBounds.top + imageBounds.height);
+      
+      // Ensure we have a valid crop area
+      if (cropRight <= cropLeft || cropBottom <= cropTop) {
+        console.warn('Invalid crop area');
+        cancelCrop();
+        return;
+      }
+      
+      // Calculate relative coordinates within the image
+      const relativeLeft = (cropLeft - imageBounds.left) / imageBounds.width * (targetImage.width || 1);
+      const relativeTop = (cropTop - imageBounds.top) / imageBounds.height * (targetImage.height || 1);
+      const relativeWidth = (cropRight - cropLeft) / imageBounds.width * (targetImage.width || 1);
+      const relativeHeight = (cropBottom - cropTop) / imageBounds.height * (targetImage.height || 1);
 
-      // Create clipPath to crop the image
+      console.log('Relative crop:', {
+        relativeLeft,
+        relativeTop,
+        relativeWidth,
+        relativeHeight,
+        originalWidth: targetImage.width,
+        originalHeight: targetImage.height
+      });
+
+      // Create clipPath with relative coordinates
       const clipPath = new fabric.Rect({
         left: relativeLeft,
         top: relativeTop,
         width: relativeWidth,
         height: relativeHeight,
-        absolutePositioned: true
+        absolutePositioned: false
       });
 
       // Apply the crop
