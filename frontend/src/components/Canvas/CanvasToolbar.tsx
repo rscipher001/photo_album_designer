@@ -216,40 +216,50 @@ export function CanvasToolbar({
       
       console.log('Crop rectangle bounds:', cropBounds);
       console.log('Image bounding rect:', imageBounds);
+      console.log('Target image properties:', {
+        width: targetImage.width,
+        height: targetImage.height,
+        scaleX: targetImage.scaleX,
+        scaleY: targetImage.scaleY,
+        left: targetImage.left,
+        top: targetImage.top
+      });
       
-      // Calculate the crop area relative to the image's bounding rectangle
-      const cropRelativeLeft = cropBounds.left - imageBounds.left;
-      const cropRelativeTop = cropBounds.top - imageBounds.top;
-      const cropRelativeWidth = cropBounds.width;
-      const cropRelativeHeight = cropBounds.height;
+      // Calculate crop coordinates relative to the scaled image on canvas
+      const cropX = Math.max(0, cropBounds.left - imageBounds.left);
+      const cropY = Math.max(0, cropBounds.top - imageBounds.top);
+      const cropW = Math.min(cropBounds.width, imageBounds.width - cropX);
+      const cropH = Math.min(cropBounds.height, imageBounds.height - cropY);
       
-      // Convert to normalized coordinates (0-1) relative to the image bounds
-      const normalizedLeft = cropRelativeLeft / imageBounds.width;
-      const normalizedTop = cropRelativeTop / imageBounds.height;
-      const normalizedWidth = cropRelativeWidth / imageBounds.width;
-      const normalizedHeight = cropRelativeHeight / imageBounds.height;
+      // Convert to percentages of the displayed image
+      const leftPercent = cropX / imageBounds.width;
+      const topPercent = cropY / imageBounds.height;
+      const widthPercent = cropW / imageBounds.width;
+      const heightPercent = cropH / imageBounds.height;
       
-      // Convert to original image coordinates
-      const clipLeft = normalizedLeft * (targetImage.width || 1);
-      const clipTop = normalizedTop * (targetImage.height || 1);
-      const clipWidth = normalizedWidth * (targetImage.width || 1);
-      const clipHeight = normalizedHeight * (targetImage.height || 1);
+      // Convert percentages to actual pixel coordinates in the original image
+      const originalWidth = targetImage.width || 1;
+      const originalHeight = targetImage.height || 1;
+      
+      const clipLeft = leftPercent * originalWidth;
+      const clipTop = topPercent * originalHeight;
+      const clipWidth = widthPercent * originalWidth;
+      const clipHeight = heightPercent * originalHeight;
 
-      console.log('Crop calculation:', {
-        cropRelativeLeft,
-        cropRelativeTop,
-        cropRelativeWidth,
-        cropRelativeHeight,
-        normalizedLeft,
-        normalizedTop,
-        normalizedWidth,
-        normalizedHeight,
-        clipLeft,
-        clipTop,
-        clipWidth,
-        clipHeight,
-        originalImageWidth: targetImage.width,
-        originalImageHeight: targetImage.height
+      console.log('Detailed crop calculation:', {
+        // Canvas coordinates
+        cropBounds,
+        imageBounds,
+        cropX, cropY, cropW, cropH,
+        
+        // Percentages
+        leftPercent, topPercent, widthPercent, heightPercent,
+        
+        // Original image
+        originalWidth, originalHeight,
+        
+        // Final clip coordinates
+        clipLeft, clipTop, clipWidth, clipHeight
       });
 
       // Validate crop area
@@ -259,7 +269,7 @@ export function CanvasToolbar({
         return;
       }
 
-      // Create clipPath - coordinates should be relative to the image's own coordinate system
+      // Create clipPath with coordinates relative to the original image
       const clipPath = new fabric.Rect({
         left: clipLeft,
         top: clipTop,
