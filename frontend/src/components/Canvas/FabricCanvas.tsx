@@ -147,11 +147,14 @@ export const FabricCanvas = forwardRef<any, FabricCanvasProps>(({
 
         // Position image (center by default or use provided position)
         if (position) {
+          // Position image so that its center is at the drop point
+          const scaledWidth = (img.width || 0) * scale;
+          const scaledHeight = (img.height || 0) * scale;
           img.set({
-            left: position.x,
-            top: position.y
+            left: position.x - scaledWidth / 2,
+            top: position.y - scaledHeight / 2
           });
-          console.log('Positioned at:', position.x, position.y);
+          console.log('Positioned at drop point:', position.x, position.y, 'Image center offset:', -scaledWidth / 2, -scaledHeight / 2);
         } else {
           // Center the image on canvas
           const leftPos = (width - (img.width || 0) * scale) / 2;

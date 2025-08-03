@@ -135,22 +135,42 @@ export function ImageBrowser({ onImageSelect, className = '' }: ImageBrowserProp
               <h4 className="text-sm font-medium text-gray-700 mb-2">Images ({data.images.length})</h4>
               <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-2">
                 {data.images.map((image) => (
-                  <button
+                  <div
                     key={image.path}
+                    className="group relative aspect-square bg-gray-100 rounded overflow-hidden hover:ring-2 hover:ring-blue-500 cursor-grab active:cursor-grabbing transition-all duration-200 hover:scale-105 hover:shadow-lg"
+                    draggable
+                    onDragStart={(e) => {
+                      // Store image data in drag event
+                      e.dataTransfer.setData('application/json', JSON.stringify(image));
+                      e.dataTransfer.effectAllowed = 'copy';
+                      
+                      // Set drag image to the thumbnail for better UX
+                      const dragImage = e.currentTarget.querySelector('img') as HTMLImageElement;
+                      if (dragImage) {
+                        e.dataTransfer.setDragImage(dragImage, 50, 50);
+                      }
+                    }}
                     onClick={() => handleImageClick(image)}
-                    className="group relative aspect-square bg-gray-100 rounded overflow-hidden hover:ring-2 hover:ring-primary-500"
                   >
                     <img
                       src={image.thumbnail}
                       alt={image.name}
-                      className="w-full h-full object-cover"
+                      className="w-full h-full object-cover pointer-events-none"
                       loading="lazy"
                     />
-                    <div className="absolute inset-0 bg-black bg-opacity-0 group-hover:bg-opacity-20 transition-opacity" />
-                    <div className="absolute bottom-0 left-0 right-0 bg-black bg-opacity-50 text-white text-xs p-1 opacity-0 group-hover:opacity-100 transition-opacity">
-                      {image.name}
+                    <div className="absolute inset-0 bg-black bg-opacity-0 group-hover:bg-opacity-20 transition-opacity pointer-events-none" />
+                    
+                    {/* Drag indicator */}
+                    <div className="absolute top-2 right-2 opacity-0 group-hover:opacity-100 transition-opacity bg-white bg-opacity-90 rounded p-1">
+                      <svg className="w-3 h-3 text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 16V4m0 0L3 8m4-4l4 4m6 0v12m0 0l4-4m-4 4l-4-4" />
+                      </svg>
                     </div>
-                  </button>
+                    <div className="absolute bottom-0 left-0 right-0 bg-black bg-opacity-50 text-white text-xs p-1 opacity-0 group-hover:opacity-100 transition-opacity">
+                      <div className="font-medium truncate">{image.name}</div>
+                      <div className="text-gray-300">Click or drag to canvas</div>
+                    </div>
+                  </div>
                 ))}
               </div>
             </div>

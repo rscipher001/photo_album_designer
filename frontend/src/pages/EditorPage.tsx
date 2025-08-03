@@ -30,6 +30,7 @@ export function EditorPage() {
   const [hasUnsavedChanges, setHasUnsavedChanges] = useState(false);
   const [isAutoSaving, setIsAutoSaving] = useState(false);
   const [fabricCanvas, setFabricCanvas] = useState<fabric.Canvas | null>(null);
+  const [isDragOver, setIsDragOver] = useState(false);
   
   // Refs for accessing canvas methods
   const canvasRef = useRef<any>(null);
@@ -70,6 +71,16 @@ export function EditorPage() {
     // Access canvas methods through ref
     if (canvasRef.current && canvasRef.current.addImage) {
       canvasRef.current.addImage(image);
+    }
+  }, []);
+
+  /**
+   * Handle image drop onto canvas at specific position
+   */
+  const handleImageDrop = useCallback((image: ImageFile, position: { x: number; y: number }) => {
+    // Access canvas methods through ref and add image at specific position
+    if (canvasRef.current && canvasRef.current.addImage) {
+      canvasRef.current.addImage(image, position);
     }
   }, []);
 
@@ -263,8 +274,65 @@ export function EditorPage() {
           />
 
           {/* Canvas Container */}
-          <div className="flex-1 bg-gray-900 p-8 overflow-auto">
-            <div className="flex items-center justify-center min-h-full">
+          <div 
+            className={`flex-1 bg-gray-900 p-8 overflow-auto transition-colors ${
+              isDragOver ? 'bg-gray-800 ring-2 ring-blue-500 ring-inset' : ''
+            }`}
+            onDragOver={(e) => {
+              e.preventDefault();
+              e.dataTransfer.dropEffect = 'copy';
+              setIsDragOver(true);
+            }}
+            onDragLeave={(e) => {
+              // Only set drag over false if we're actually leaving the drop zone
+              const rect = e.currentTarget.getBoundingClientRect();
+              const x = e.clientX;
+              const y = e.clientY;
+              
+              if (x < rect.left || x > rect.right || y < rect.top || y > rect.bottom) {
+                setIsDragOver(false);
+              }
+            }}
+            onDrop={(e) => {
+              e.preventDefault();
+              setIsDragOver(false);
+              
+              try {
+                const imageData = e.dataTransfer.getData('application/json');
+                if (imageData) {
+                  const image: ImageFile = JSON.parse(imageData);
+                  
+                  // Calculate drop position relative to canvas
+                  const canvasElement = e.currentTarget.querySelector('canvas');
+                  if (canvasElement) {
+                    const canvasRect = canvasElement.getBoundingClientRect();
+                    const x = e.clientX - canvasRect.left;
+                    const y = e.clientY - canvasRect.top;
+                    
+                    // Only drop if within canvas bounds
+                    if (x >= 0 && x <= canvasRect.width && y >= 0 && y <= canvasRect.height) {
+                      handleImageDrop(image, { x, y });
+                    }
+                  }
+                }
+              } catch (error) {
+                console.error('Error handling image drop:', error);
+              }
+            }}
+          >
+            <div className="flex items-center justify-center min-h-full relative">
+              {/* Drop overlay */}
+              {isDragOver && (
+                <div className="absolute inset-0 flex items-center justify-center bg-black bg-opacity-50 rounded-lg z-10 pointer-events-none">
+                  <div className="bg-blue-600 text-white px-6 py-3 rounded-lg shadow-lg flex items-center space-x-2">
+                    <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 16V4m0 0L3 8m4-4l4 4m6 0v12m0 0l4-4m-4 4l-4-4" />
+                    </svg>
+                    <span className="text-sm font-medium">Drop image here to place it</span>
+                  </div>
+                </div>
+              )}
+              
               <FabricCanvas
                 ref={canvasRef}
                 width={canvasSize.width}
