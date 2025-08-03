@@ -1,0 +1,46 @@
+version: '3.8'
+
+services:
+  album-designer:
+    build: .
+    ports:
+      - "3000:3000"
+    volumes:
+      # Mount your photo directories here
+      - "${PHOTOS_DIR:-./sample-photos}:/app/photos:ro"
+      # Persistent storage for uploads and projects
+      - "./storage/uploads:/app/storage/uploads"
+      - "./storage/thumbnails:/app/storage/thumbnails"
+      - "./storage/projects:/app/storage/projects"
+    environment:
+      - NODE_ENV=production
+      - PHOTOS_DIR=/app/photos
+      - UPLOAD_DIR=/app/storage/uploads
+      - THUMBNAIL_DIR=/app/storage/thumbnails
+      - PROJECT_DIR=/app/storage/projects
+      - MAX_UPLOAD_SIZE=50mb
+      - THUMBNAIL_SIZES=150,300,600
+    restart: unless-stopped
+    
+  # Development override
+  album-designer-dev:
+    build:
+      context: .
+      target: backend
+    ports:
+      - "3000:3000"
+      - "5173:5173"  # Vite dev server
+    volumes:
+      - "./backend:/app"
+      - "./frontend:/app/frontend"
+      - "${PHOTOS_DIR:-./sample-photos}:/app/photos:ro"
+      - "./storage:/app/storage"
+    environment:
+      - NODE_ENV=development
+      - PHOTOS_DIR=/app/photos
+      - UPLOAD_DIR=/app/storage/uploads
+      - THUMBNAIL_DIR=/app/storage/thumbnails
+      - PROJECT_DIR=/app/storage/projects
+    command: npm run dev
+    profiles:
+      - dev
