@@ -242,11 +242,31 @@ export const FabricCanvas = forwardRef<any, FabricCanvasProps>(({
    * Load canvas data from JSON (for loading projects)
    */
   const loadCanvasData = (jsonData: any) => {
-    if (!fabricCanvasRef.current) return;
+    if (!fabricCanvasRef.current) {
+      console.error('Canvas not available for loading data');
+      return;
+    }
 
-    fabricCanvasRef.current.loadFromJSON(jsonData, () => {
-      fabricCanvasRef.current?.renderAll();
-    });
+    console.log('Loading canvas data:', jsonData);
+
+    try {
+      fabricCanvasRef.current.loadFromJSON(jsonData, (canvas: fabric.Canvas, error: Error) => {
+        if (error) {
+          console.error('Error loading canvas data:', error);
+          return;
+        }
+        
+        console.log('Canvas loaded successfully, objects:', canvas.getObjects().length);
+        fabricCanvasRef.current?.renderAll();
+        
+        // Trigger canvas change event to update layer panel
+        if (onCanvasChange) {
+          onCanvasChange();
+        }
+      });
+    } catch (error) {
+      console.error('Exception while loading canvas data:', error);
+    }
   };
 
   // Expose methods through ref for parent component access

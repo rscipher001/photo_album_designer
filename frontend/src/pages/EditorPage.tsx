@@ -206,27 +206,38 @@ export function EditorPage() {
    * Load project data into canvas when project loads
    */
   useEffect(() => {
-    if (project && project.pages && project.pages.length > 0 && canvasRef.current) {
+    if (project && project.pages && project.pages.length > 0 && canvasRef.current && fabricCanvas) {
+      console.log('Loading project data:', project);
       const firstPage = project.pages[0];
       
-      // Update canvas size
+      // Update canvas size first
       if (firstPage.layout) {
+        console.log('Setting canvas size:', firstPage.layout);
         setCanvasSize({
           width: firstPage.layout.width,
           height: firstPage.layout.height
         });
       }
       
-      // Load canvas data if it exists
-      if (firstPage.elements && canvasRef.current.loadCanvasData) {
-        const canvasData = {
-          objects: firstPage.elements,
-          background: firstPage.layout.background || '#ffffff'
-        };
-        canvasRef.current.loadCanvasData(canvasData);
+      // Load canvas data if it exists - delay to ensure canvas is ready
+      if (firstPage.elements && firstPage.elements.length > 0) {
+        console.log('Loading canvas elements:', firstPage.elements.length, 'objects');
+        
+        setTimeout(() => {
+          if (canvasRef.current && canvasRef.current.loadCanvasData) {
+            const canvasData = {
+              objects: firstPage.elements,
+              background: firstPage.layout?.background || '#ffffff'
+            };
+            canvasRef.current.loadCanvasData(canvasData);
+            console.log('Canvas data loaded successfully');
+          }
+        }, 100); // Small delay to ensure canvas is fully initialized
+      } else {
+        console.log('No elements to load for project');
       }
     }
-  }, [project]);
+  }, [project, fabricCanvas]); // Include fabricCanvas in dependencies
 
   // Show loading state while project loads
   if (projectLoading) {

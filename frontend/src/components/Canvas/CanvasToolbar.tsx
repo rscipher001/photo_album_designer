@@ -108,43 +108,137 @@ export function CanvasToolbar({
 
   /**
    * Enable crop mode for the selected image
-   * Creates a cropping rectangle overlay on the image
+   * Creates a cropping rectangle overlay and applies crop when confirmed
    */
   const enableCropMode = () => {
     if (!canvas || !selectedObject || selectedObject.type !== 'image') return;
 
-    // Get image bounds
     const image = selectedObject as fabric.Image;
-    const bound = image.getBoundingRect();
+    const imageBounds = image.getBoundingRect();
 
-    // Create crop rectangle (initially covers the entire image)
+    // Create crop rectangle (initially covers 80% of the image)
+    const cropWidth = imageBounds.width * 0.8;
+    const cropHeight = imageBounds.height * 0.8;
+    const cropLeft = imageBounds.left + (imageBounds.width - cropWidth) / 2;
+    const cropTop = imageBounds.top + (imageBounds.height - cropHeight) / 2;
+
     const cropRect = new fabric.Rect({
-      left: bound.left,
-      top: bound.top,
-      width: bound.width,
-      height: bound.height,
-      fill: 'transparent',
+      left: cropLeft,
+      top: cropTop,
+      width: cropWidth,
+      height: cropHeight,
+      fill: 'rgba(0, 123, 255, 0.1)',
       stroke: '#007bff',
       strokeWidth: 2,
       strokeDashArray: [5, 5],
       selectable: true,
       hasControls: true,
-      hasBorders: true
+      hasBorders: true,
+      cornerStyle: 'circle',
+      cornerSize: 8,
+      transparentCorners: false,
+      cornerColor: '#007bff'
     });
     
-    // Add custom property to identify as crop rectangle
+    // Add custom properties
     (cropRect as any).id = 'crop-rectangle';
+    (cropRect as any).targetImage = image;
 
     // Add crop rectangle to canvas
     canvas.add(cropRect);
     canvas.setActiveObject(cropRect);
     canvas.renderAll();
 
-    // TODO: Implement actual cropping functionality
-    // This would involve:
-    // 1. Listening for crop rectangle changes
-    // 2. Applying crop to the image when done
-    // 3. Removing the crop rectangle
+    // Create crop confirmation UI
+    createCropConfirmationUI(cropRect, image);
+  };
+
+  /**
+   * Create crop confirmation UI with apply/cancel buttons
+   */
+  const createCropConfirmationUI = (cropRect: fabric.Rect, targetImage: fabric.Image) => {
+    if (!canvas) return;
+
+    // Create a temporary overlay div for crop controls
+    const overlay = document.createElement('div');
+    overlay.className = 'crop-overlay';
+    overlay.style.cssText = `
+      position: fixed;
+      top: 10px;
+      left: 50%;
+      transform: translateX(-50%);
+      background: rgba(0, 0, 0, 0.8);
+      color: white;
+      padding: 10px 20px;
+      border-radius: 5px;
+      z-index: 1000;
+      display: flex;
+      gap: 10px;
+      align-items: center;
+    `;
+
+    overlay.innerHTML = `
+      <span>Adjust the crop area and click Apply</span>
+      <button id="crop-apply" style="background: #007bff; color: white; border: none; padding: 5px 15px; border-radius: 3px; cursor: pointer;">Apply Crop</button>
+      <button id="crop-cancel" style="background: #6c757d; color: white; border: none; padding: 5px 15px; border-radius: 3px; cursor: pointer;">Cancel</button>
+    `;
+
+    document.body.appendChild(overlay);
+
+    // Apply crop function
+    const applyCrop = () => {
+      const cropBounds = cropRect.getBoundingRect();
+      const imageBounds = targetImage.getBoundingRect();
+
+      // Calculate crop parameters relative to the original image
+      const scaleX = targetImage.scaleX || 1;
+      const scaleY = targetImage.scaleY || 1;
+      
+      // Calculate the crop area relative to the image's original dimensions
+      const relativeLeft = (cropBounds.left - imageBounds.left) / scaleX;
+      const relativeTop = (cropBounds.top - imageBounds.top) / scaleY;
+      const relativeWidth = cropBounds.width / scaleX;
+      const relativeHeight = cropBounds.height / scaleY;
+
+      // Apply crop to the image using clipPath
+      const clipPath = new fabric.Rect({
+        left: relativeLeft,
+        top: relativeTop,
+        width: relativeWidth,
+        height: relativeHeight,
+        absolutePositioned: true
+      });
+
+      targetImage.set({
+        clipPath: clipPath
+      });
+
+      // Clean up
+      canvas.remove(cropRect);
+      canvas.setActiveObject(targetImage);
+      canvas.renderAll();
+      document.body.removeChild(overlay);
+    };
+
+    // Cancel crop function
+    const cancelCrop = () => {
+      canvas.remove(cropRect);
+      canvas.setActiveObject(targetImage);
+      canvas.renderAll();
+      document.body.removeChild(overlay);
+    };
+
+    // Add event listeners
+    overlay.querySelector('#crop-apply')?.addEventListener('click', applyCrop);
+    overlay.querySelector('#crop-cancel')?.addEventListener('click', cancelCrop);
+
+    // Clean up on canvas clicks outside crop area
+    const handleCanvasClick = (e: fabric.IEvent) => {
+      if (e.target !== cropRect) {
+        canvas.off('mouse:down', handleCanvasClick);
+      }
+    };
+    canvas.on('mouse:down', handleCanvasClick);
   };
 
   /**
