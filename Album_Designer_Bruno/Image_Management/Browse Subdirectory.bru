@@ -1,0 +1,23 @@
+meta {
+  name: Browse Subdirectory
+  type: http
+  seq: 2
+}
+
+get {
+  url: {{apiUrl}}/images/browse
+  body: none
+  auth: none
+}
+
+params:query {
+  path: wedding/ceremony
+}
+
+docs {
+  # Browse Subdirectory
+  
+  Example of browsing a specific subdirectory within the photos directory.
+  
+  This request demonstrates how to navigate into subdirectories using the path parameter.
+}

@@ -1,0 +1,96 @@
+meta {
+  name: Get Project by ID
+  type: http
+  seq: 2
+}
+
+get {
+  url: {{apiUrl}}/projects/550e8400-e29b-41d4-a716-446655440000
+  body: none
+  auth: none
+}
+
+docs {
+  # Get Project by ID API
+  
+  Retrieve detailed information about a specific project.
+  
+  ## Parameters
+  - **id** (path): UUID of the project to retrieve
+  
+  ## Response
+  - **200 OK**: Returns complete project data
+  - **404 Not Found**: Project not found
+  - **500 Internal Server Error**: Failed to read project
+  
+  ## Example Response
+  ```json
+  {
+    "id": "550e8400-e29b-41d4-a716-446655440000",
+    "name": "Wedding Album 2024",
+    "createdAt": "2024-01-15T10:00:00.000Z",
+    "updatedAt": "2024-01-15T15:30:00.000Z",
+    "template": "wedding",
+    "pages": [
+      {
+        "id": "page_1",
+        "name": "Page 1",
+        "layout": {
+          "width": 1920,
+          "height": 1080,
+          "background": "#ffffff"
+        },
+        "elements": [
+          {
+            "type": "image",
+            "id": "image_1642234567890",
+            "left": 100,
+            "top": 100,
+            "scaleX": 0.5,
+            "scaleY": 0.5,
+            "originalPath": "wedding/ceremony/IMG_001.jpg",
+            "originalName": "IMG_001.jpg"
+          }
+        ]
+      }
+    ],
+    "settings": {
+      "defaultPageSize": {
+        "width": 1920,
+        "height": 1080
+      },
+      "exportFormat": "jpg",
+      "quality": 90
+    }
+  }
+  ```
+  
+  ## Features
+  - Complete canvas state with all objects
+  - Page layout information
+  - Project settings and metadata
+  - Element positioning and transformations
+}
+
+tests {
+  test("should return 200 for valid project ID", function() {
+    expect(res.getStatus()).to.equal(200);
+  });
+  
+  test("should include project metadata", function() {
+    const body = res.getBody();
+    expect(body.id).to.be.a("string");
+    expect(body.name).to.be.a("string");
+    expect(body.createdAt).to.be.a("string");
+  });
+  
+  test("should include pages array", function() {
+    const body = res.getBody();
+    expect(body.pages).to.be.an("array");
+  });
+  
+  test("should include settings object", function() {
+    const body = res.getBody();
+    expect(body.settings).to.be.an("object");
+  });
+}

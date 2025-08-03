@@ -1,0 +1,49 @@
+meta {
+  name: Upload Info
+  type: http
+  seq: 4
+}
+
+get {
+  url: {{apiUrl}}/upload/info
+  body: none
+  auth: none
+}
+
+docs {
+  # Upload Info API
+  
+  Get information about upload configuration and constraints.
+  
+  ## Response
+  - **200 OK**: Returns upload configuration
+  
+  ## Example Response
+  ```json
+  {
+    "maxFileSize": "50MB",
+    "allowedTypes": ["image/jpeg", "image/png"],
+    "maxFiles": 10,
+    "uploadDir": "/app/storage/uploads",
+    "thumbnailSizes": [150, 300, 600]
+  }
+  ```
+  
+  ## Use Cases
+  - Frontend validation before file selection
+  - Display upload constraints to users
+  - Configuration verification during development
+}
+
+tests {
+  test("should return 200", function() {
+    expect(res.getStatus()).to.equal(200);
+  });
+  
+  test("should include upload constraints", function() {
+    const body = res.getBody();
+    expect(body.maxFileSize).to.be.a("string");
+    expect(body.allowedTypes).to.be.an("array");
+    expect(body.maxFiles).to.be.a("number");
+  });
+}

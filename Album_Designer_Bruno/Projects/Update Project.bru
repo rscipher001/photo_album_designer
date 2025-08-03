@@ -1,0 +1,124 @@
+meta {
+  name: Update Project
+  type: http
+  seq: 4
+}
+
+put {
+  url: {{apiUrl}}/projects/550e8400-e29b-41d4-a716-446655440000
+  body: json
+  auth: none
+}
+
+body:json {
+  {
+    "name": "Updated Wedding Album",
+    "pages": [
+      {
+        "id": "page_1",
+        "name": "Page 1",
+        "layout": {
+          "width": 1920,
+          "height": 1080,
+          "background": "#ffffff"
+        },
+        "elements": [
+          {
+            "type": "image",
+            "id": "image_1642234567890",
+            "left": 200,
+            "top": 150,
+            "scaleX": 0.8,
+            "scaleY": 0.8,
+            "angle": 0,
+            "opacity": 1,
+            "originalPath": "wedding/ceremony/IMG_001.jpg",
+            "originalName": "IMG_001.jpg"
+          }
+        ]
+      }
+    ],
+    "settings": {
+      "defaultPageSize": {
+        "width": 1920,
+        "height": 1080
+      },
+      "exportFormat": "png",
+      "quality": 95
+    },
+    "thumbnail": "data:image/jpeg;base64,/9j/4AAQSkZJRgABAQAAAQ..."
+  }
+}
+
+docs {
+  # Update Project API
+  
+  Update an existing project with new data.
+  
+  ## Parameters
+  - **id** (path): UUID of the project to update
+  
+  ## Request Body
+  Any project fields can be updated:
+  - **name**: Project name
+  - **pages**: Array of page objects with layouts and elements
+  - **settings**: Project settings (page size, export format, quality)
+  - **thumbnail**: Base64 encoded thumbnail image
+  
+  ## Canvas Elements
+  Each element in a page can have:
+  - **type**: "image", "text", or "shape"
+  - **id**: Unique identifier
+  - **left, top**: Position coordinates
+  - **scaleX, scaleY**: Scale factors
+  - **angle**: Rotation angle in degrees
+  - **opacity**: Transparency (0-1)
+  - **Custom properties**: Based on element type
+  
+  ## Response
+  - **200 OK**: Project updated successfully
+  - **404 Not Found**: Project not found
+  - **500 Internal Server Error**: Update failed
+  
+  ## Example Response
+  ```json
+  {
+    "success": true,
+    "project": {
+      "id": "550e8400-e29b-41d4-a716-446655440000",
+      "name": "Updated Wedding Album",
+      "updatedAt": "2024-01-15T16:00:00.000Z",
+      "pages": [...],
+      "settings": {...}
+    }
+  }
+  ```
+  
+  ## Features
+  - Preserves project ID and creation date
+  - Updates modification timestamp automatically
+  - Validates canvas data structure
+  - Supports partial updates
+}
+
+tests {
+  test("should return 200 on successful update", function() {
+    expect(res.getStatus()).to.equal(200);
+  });
+  
+  test("should return success flag", function() {
+    const body = res.getBody();
+    expect(body.success).to.be.true;
+  });
+  
+  test("should return updated project", function() {
+    const body = res.getBody();
+    expect(body.project).to.be.an("object");
+    expect(body.project.name).to.equal("Updated Wedding Album");
+  });
+  
+  test("should have updated timestamp", function() {
+    const body = res.getBody();
+    expect(body.project.updatedAt).to.be.a("string");
+  });
+}

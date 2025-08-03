@@ -1,0 +1,9 @@
+{
+  "version": "1",
+  "name": "Album_Designer_Bruno",
+  "type": "collection",
+  "ignore": [
+    "node_modules",
+    ".git"
+  ]
+}

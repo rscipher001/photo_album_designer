@@ -1,0 +1,57 @@
+meta {
+  name: Serve Image
+  type: http
+  seq: 3
+}
+
+get {
+  url: {{apiUrl}}/images/serve
+  body: none
+  auth: none
+}
+
+params:query {
+  path: sample-image.jpg
+}
+
+docs {
+  # Serve Image API
+  
+  Serves the original image file from the photos directory.
+  
+  ## Query Parameters
+  - **path** (required): Relative path to the image file
+  
+  ## Response
+  - **200 OK**: Returns the image file with appropriate headers
+  - **400 Bad Request**: Path parameter missing or not an image file
+  - **403 Forbidden**: Access denied (path outside allowed directories)
+  - **404 Not Found**: Image not found
+  
+  ## Headers
+  - `Content-Type`: Image MIME type (image/jpeg, image/png)
+  - `Content-Length`: File size in bytes
+  - `Last-Modified`: File modification date
+  - `ETag`: Entity tag for caching
+  - `Cache-Control`: Caching directives (24 hours)
+  
+  ## Supported Formats
+  - JPEG (.jpg, .jpeg)
+  - PNG (.png)
+}
+
+tests {
+  test("should return 200 for valid image", function() {
+    expect(res.getStatus()).to.equal(200);
+  });
+  
+  test("should have image content type", function() {
+    const contentType = res.getHeader("content-type");
+    expect(contentType).to.match(/^image\/(jpeg|png)/);
+  });
+  
+  test("should have cache headers", function() {
+    expect(res.getHeader("cache-control")).to.be.a("string");
+    expect(res.getHeader("etag")).to.be.a("string");
+  });
+}

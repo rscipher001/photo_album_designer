@@ -1,0 +1,60 @@
+meta {
+  name: Get Thumbnail
+  type: http
+  seq: 4
+}
+
+get {
+  url: {{apiUrl}}/images/thumbnail
+  body: none
+  auth: none
+}
+
+params:query {
+  path: sample-image.jpg
+  size: 300
+}
+
+docs {
+  # Get Thumbnail API
+  
+  Generates and serves thumbnails for images with caching.
+  
+  ## Query Parameters
+  - **path** (required): Relative path to the image file
+  - **size** (required): Thumbnail size in pixels (150, 300, or 600)
+  
+  ## Response
+  - **200 OK**: Returns the thumbnail as JPEG
+  - **400 Bad Request**: Invalid parameters or thumbnail size
+  - **403 Forbidden**: Access denied
+  - **404 Not Found**: Original image not found
+  - **500 Internal Server Error**: Thumbnail generation failed
+  
+  ## Features
+  - Automatic thumbnail generation using Sharp
+  - Disk caching (thumbnails are cached and reused)
+  - Maintains aspect ratio with "fit inside" scaling
+  - Progressive JPEG output with 85% quality
+  - Long cache headers (7 days)
+  
+  ## Supported Sizes
+  - 150px (small thumbnails)
+  - 300px (medium thumbnails)
+  - 600px (large thumbnails)
+}
+
+tests {
+  test("should return 200", function() {
+    expect(res.getStatus()).to.equal(200);
+  });
+  
+  test("should return JPEG image", function() {
+    expect(res.getHeader("content-type")).to.equal("image/jpeg");
+  });
+  
+  test("should have long cache headers", function() {
+    const cacheControl = res.getHeader("cache-control");
+    expect(cacheControl).to.include("max-age=604800"); // 7 days
+  });
+}

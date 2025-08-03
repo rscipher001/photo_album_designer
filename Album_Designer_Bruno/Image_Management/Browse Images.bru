@@ -1,0 +1,72 @@
+meta {
+  name: Browse Images
+  type: http
+  seq: 1
+}
+
+get {
+  url: {{apiUrl}}/images/browse
+  body: none
+  auth: none
+}
+
+params:query {
+  path: 
+}
+
+docs {
+  # Browse Images API
+  
+  Browse images and directories in the configured photos directory.
+  
+  ## Query Parameters
+  - **path** (optional): Relative path within the photos directory to browse
+  
+  ## Response
+  - **200 OK**: Returns directory contents
+  - **403 Forbidden**: Access denied (path outside allowed directories)
+  - **404 Not Found**: Directory not found
+  
+  ## Example Response
+  ```json
+  {
+    "currentPath": "wedding/ceremony",
+    "directories": [
+      {
+        "name": "reception",
+        "path": "wedding/reception"
+      }
+    ],
+    "images": [
+      {
+        "name": "IMG_001.jpg",
+        "path": "wedding/ceremony/IMG_001.jpg",
+        "size": 2457600,
+        "modified": "2024-01-15T10:30:00Z",
+        "thumbnail": "/api/images/thumbnail?path=wedding%2Fceremony%2FIMG_001.jpg&size=300"
+      }
+    ]
+  }
+  ```
+}
+
+tests {
+  test("should return 200", function() {
+    expect(res.getStatus()).to.equal(200);
+  });
+  
+  test("should have currentPath", function() {
+    const body = res.getBody();
+    expect(body.currentPath).to.be.a("string");
+  });
+  
+  test("should have directories array", function() {
+    const body = res.getBody();
+    expect(body.directories).to.be.an("array");
+  });
+  
+  test("should have images array", function() {
+    const body = res.getBody();
+    expect(body.images).to.be.an("array");
+  });
+}

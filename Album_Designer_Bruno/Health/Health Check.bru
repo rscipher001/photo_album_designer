@@ -1,0 +1,49 @@
+meta {
+  name: Health Check
+  type: http
+  seq: 1
+}
+
+get {
+  url: {{baseUrl}}/health
+  body: none
+  auth: none
+}
+
+docs {
+  # Health Check API
+  
+  This endpoint checks if the Album Designer server is running correctly.
+  
+  ## Response
+  - **200 OK**: Server is healthy
+  - Returns server status, timestamp, and configuration info
+  
+  ## Example Response
+  ```json
+  {
+    "status": "ok",
+    "timestamp": "2024-01-15T10:30:00.000Z",
+    "config": {
+      "photosDir": "/app/photos",
+      "uploadDir": "/app/storage/uploads"
+    }
+  }
+  ```
+}
+
+tests {
+  test("should return 200", function() {
+    expect(res.getStatus()).to.equal(200);
+  });
+  
+  test("should have status ok", function() {
+    const body = res.getBody();
+    expect(body.status).to.equal("ok");
+  });
+  
+  test("should have timestamp", function() {
+    const body = res.getBody();
+    expect(body.timestamp).to.be.a("string");
+  });
+}

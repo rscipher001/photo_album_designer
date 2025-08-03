@@ -1,0 +1,53 @@
+meta {
+  name: Delete Project
+  type: http
+  seq: 5
+}
+
+delete {
+  url: {{apiUrl}}/projects/550e8400-e29b-41d4-a716-446655440000
+  body: none
+  auth: none
+}
+
+docs {
+  # Delete Project API
+  
+  Delete a project permanently from the system.
+  
+  ## Parameters
+  - **id** (path): UUID of the project to delete
+  
+  ## Response
+  - **200 OK**: Project deleted successfully
+  - **404 Not Found**: Project not found
+  - **500 Internal Server Error**: Deletion failed
+  
+  ## Example Response
+  ```json
+  {
+    "success": true,
+    "message": "Project deleted successfully"
+  }
+  ```
+  
+  ## ⚠️ Warning
+  This operation is **permanent** and cannot be undone. The project file will be completely removed from the filesystem.
+  
+  ## Features
+  - Complete file removal
+  - Error handling for missing projects
+  - Success confirmation
+}
+
+tests {
+  test("should return 200 on successful deletion", function() {
+    expect(res.getStatus()).to.equal(200);
+  });
+  
+  test("should return success message", function() {
+    const body = res.getBody();
+    expect(body.success).to.be.true;
+    expect(body.message).to.be.a("string");
+  });
+}

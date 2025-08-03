@@ -1,0 +1,111 @@
+meta {
+  name: Create New Project
+  type: http
+  seq: 3
+}
+
+post {
+  url: {{apiUrl}}/projects
+  body: json
+  auth: none
+}
+
+body:json {
+  {
+    "name": "My New Wedding Album",
+    "template": "wedding"
+  }
+}
+
+docs {
+  # Create New Project API
+  
+  Create a new album project with default settings.
+  
+  ## Request Body
+  - **name** (required): Project name
+  - **template** (optional): Template type (default: "blank")
+  
+  ## Available Templates
+  - `blank`: Empty project
+  - `wedding`: Wedding album template
+  - `portrait`: Portrait session template
+  - `event`: Event photography template
+  
+  ## Response
+  - **201 Created**: Project created successfully
+  - **400 Bad Request**: Invalid request data
+  - **500 Internal Server Error**: Creation failed
+  
+  ## Example Request
+  ```json
+  {
+    "name": "Summer Wedding 2024",
+    "template": "wedding"
+  }
+  ```
+  
+  ## Example Response
+  ```json
+  {
+    "success": true,
+    "project": {
+      "id": "550e8400-e29b-41d4-a716-446655440000",
+      "name": "Summer Wedding 2024",
+      "createdAt": "2024-01-15T10:00:00.000Z",
+      "updatedAt": "2024-01-15T10:00:00.000Z",
+      "template": "wedding",
+      "pages": [
+        {
+          "id": "page_1",
+          "name": "Page 1",
+          "layout": {
+            "width": 1920,
+            "height": 1080,
+            "background": "#ffffff"
+          },
+          "elements": []
+        }
+      ],
+      "settings": {
+        "defaultPageSize": {
+          "width": 1920,
+          "height": 1080
+        },
+        "exportFormat": "jpg",
+        "quality": 90
+      }
+    }
+  }
+  ```
+  
+  ## Features
+  - Automatic UUID generation
+  - Default page creation
+  - Template-based initialization
+  - Timestamp tracking
+}
+
+tests {
+  test("should return 201 on successful creation", function() {
+    expect(res.getStatus()).to.equal(201);
+  });
+  
+  test("should return success flag", function() {
+    const body = res.getBody();
+    expect(body.success).to.be.true;
+  });
+  
+  test("should return created project", function() {
+    const body = res.getBody();
+    expect(body.project).to.be.an("object");
+    expect(body.project.id).to.be.a("string");
+    expect(body.project.name).to.equal("My New Wedding Album");
+  });
+  
+  test("should have default page", function() {
+    const body = res.getBody();
+    expect(body.project.pages).to.be.an("array");
+    expect(body.project.pages.length).to.equal(1);
+  });
+}

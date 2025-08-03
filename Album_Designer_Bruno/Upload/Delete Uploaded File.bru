@@ -1,0 +1,59 @@
+meta {
+  name: Delete Uploaded File
+  type: http
+  seq: 3
+}
+
+delete {
+  url: {{apiUrl}}/upload/upload-1642234567890-123456789.jpg
+  body: none
+  auth: none
+}
+
+docs {
+  # Delete Uploaded File API
+  
+  Delete an uploaded file and its associated thumbnails.
+  
+  ## Request
+  - **Method**: DELETE
+  - **URL**: `/api/upload/{filename}`
+  
+  ## Parameters
+  - **filename** (path): The filename of the uploaded file to delete
+  
+  ## Security
+  - Only files in the upload directory can be deleted
+  - Path traversal protection prevents deleting files outside upload directory
+  
+  ## Response
+  - **200 OK**: File deleted successfully
+  - **403 Forbidden**: Access denied (security violation)
+  - **404 Not Found**: File not found
+  - **500 Internal Server Error**: Deletion failed
+  
+  ## Example Response
+  ```json
+  {
+    "success": true,
+    "message": "File deleted successfully"
+  }
+  ```
+  
+  ## Features
+  - Automatic cleanup of associated thumbnails
+  - Security checks to prevent unauthorized deletions
+  - Complete removal of file and metadata
+}
+
+tests {
+  test("should return 200 on successful deletion", function() {
+    expect(res.getStatus()).to.equal(200);
+  });
+  
+  test("should return success message", function() {
+    const body = res.getBody();
+    expect(body.success).to.be.true;
+    expect(body.message).to.be.a("string");
+  });
+}

@@ -1,0 +1,96 @@
+meta {
+  name: Upload Multiple Images
+  type: http
+  seq: 2
+}
+
+post {
+  url: {{apiUrl}}/upload/multiple
+  body: multipartForm
+  auth: none
+}
+
+body:multipart-form {
+  images: @file(/path/to/image1.jpg)
+  images: @file(/path/to/image2.png)
+  images: @file(/path/to/image3.jpg)
+}
+
+docs {
+  # Upload Multiple Images API
+  
+  Upload multiple image files in a single request.
+  
+  ## Request
+  - **Method**: POST
+  - **Content-Type**: multipart/form-data
+  - **Body**: Form data with multiple 'images' fields
+  
+  ## Constraints
+  - Maximum 10 files per request
+  - Maximum file size: 50MB per file
+  - Only JPEG and PNG files accepted
+  
+  ## Response
+  - **200 OK**: All files uploaded successfully
+  - **400 Bad Request**: No files provided or validation failed
+  - **500 Internal Server Error**: Upload failed
+  
+  ## Example Response
+  ```json
+  {
+    "success": true,
+    "files": [
+      {
+        "name": "photo1.jpg",
+        "filename": "upload-1642234567890-111111111.jpg",
+        "path": "uploads/upload-1642234567890-111111111.jpg",
+        "size": 1234567,
+        "mimetype": "image/jpeg",
+        "thumbnail": "/api/images/thumbnail?path=uploads%2Fupload-1642234567890-111111111.jpg&size=300"
+      },
+      {
+        "name": "photo2.png",
+        "filename": "upload-1642234567890-222222222.png",
+        "path": "uploads/upload-1642234567890-222222222.png",
+        "size": 987654,
+        "mimetype": "image/png",
+        "thumbnail": "/api/images/thumbnail?path=uploads%2Fupload-1642234567890-222222222.png&size=300"
+      }
+    ],
+    "count": 2
+  }
+  ```
+  
+  ## Features
+  - Batch processing with individual file validation
+  - Background thumbnail generation for all uploaded files
+  - Detailed metadata for each uploaded file
+  - Upload count in response
+}
+
+tests {
+  test("should return 200", function() {
+    expect(res.getStatus()).to.equal(200);
+  });
+  
+  test("should return success flag", function() {
+    const body = res.getBody();
+    expect(body.success).to.be.true;
+  });
+  
+  test("should include files array", function() {
+    const body = res.getBody();
+    expect(body.files).to.be.an("array");
+    expect(body.count).to.be.a("number");
+  });
+  
+  test("each file should have required metadata", function() {
+    const body = res.getBody();
+    body.files.forEach(file => {
+      expect(file.name).to.be.a("string");
+      expect(file.size).to.be.a("number");
+      expect(file.thumbnail).to.be.a("string");
+    });
+  });
+}

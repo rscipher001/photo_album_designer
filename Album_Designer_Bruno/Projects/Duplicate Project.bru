@@ -1,0 +1,99 @@
+meta {
+  name: Duplicate Project
+  type: http
+  seq: 6
+}
+
+post {
+  url: {{apiUrl}}/projects/550e8400-e29b-41d4-a716-446655440000/duplicate
+  body: json
+  auth: none
+}
+
+body:json {
+  {
+    "name": "Copy of Wedding Album"
+  }
+}
+
+docs {
+  # Duplicate Project API
+  
+  Create a copy of an existing project with a new name and ID.
+  
+  ## Parameters
+  - **id** (path): UUID of the project to duplicate
+  
+  ## Request Body
+  - **name** (optional): Name for the duplicated project
+    - If not provided, defaults to "{Original Name} (Copy)"
+  
+  ## Response
+  - **201 Created**: Project duplicated successfully
+  - **404 Not Found**: Source project not found
+  - **500 Internal Server Error**: Duplication failed
+  
+  ## Example Request
+  ```json
+  {
+    "name": "Wedding Album - Backup"
+  }
+  ```
+  
+  ## Example Response
+  ```json
+  {
+    "success": true,
+    "project": {
+      "id": "550e8400-e29b-41d4-a716-446655440001",
+      "name": "Wedding Album - Backup",
+      "createdAt": "2024-01-15T16:30:00.000Z",
+      "updatedAt": "2024-01-15T16:30:00.000Z",
+      "template": "wedding",
+      "pages": [...],
+      "settings": {...}
+    }
+  }
+  ```
+  
+  ## Features
+  - Complete project data copying
+  - New UUID generation for duplicated project
+  - Fresh timestamps (created and updated)
+  - Preserves all pages, elements, and settings
+  - Customizable project name
+  
+  ## Use Cases
+  - Creating project backups
+  - Starting new projects from existing templates
+  - Versioning and experimentation
+  - Client variations
+}
+
+tests {
+  test("should return 201 on successful duplication", function() {
+    expect(res.getStatus()).to.equal(201);
+  });
+  
+  test("should return success flag", function() {
+    const body = res.getBody();
+    expect(body.success).to.be.true;
+  });
+  
+  test("should return duplicated project", function() {
+    const body = res.getBody();
+    expect(body.project).to.be.an("object");
+    expect(body.project.name).to.equal("Copy of Wedding Album");
+  });
+  
+  test("should have different ID from original", function() {
+    const body = res.getBody();
+    expect(body.project.id).to.not.equal("550e8400-e29b-41d4-a716-446655440000");
+  });
+  
+  test("should have fresh timestamps", function() {
+    const body = res.getBody();
+    expect(body.project.createdAt).to.be.a("string");
+    expect(body.project.updatedAt).to.be.a("string");
+  });
+}

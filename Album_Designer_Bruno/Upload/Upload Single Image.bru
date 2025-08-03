@@ -1,0 +1,79 @@
+meta {
+  name: Upload Single Image
+  type: http
+  seq: 1
+}
+
+post {
+  url: {{apiUrl}}/upload/single
+  body: multipartForm
+  auth: none
+}
+
+body:multipart-form {
+  image: @file(/path/to/your/image.jpg)
+}
+
+docs {
+  # Upload Single Image API
+  
+  Upload a single image file to the server.
+  
+  ## Request
+  - **Method**: POST
+  - **Content-Type**: multipart/form-data
+  - **Body**: Form data with 'image' field containing the file
+  
+  ## Supported Formats
+  - JPEG (.jpg, .jpeg)
+  - PNG (.png)
+  
+  ## File Constraints
+  - Maximum file size: 50MB
+  - Only image files are accepted
+  
+  ## Response
+  - **200 OK**: File uploaded successfully
+  - **400 Bad Request**: No file provided or invalid file type
+  - **500 Internal Server Error**: Upload failed
+  
+  ## Example Response
+  ```json
+  {
+    "success": true,
+    "file": {
+      "name": "wedding-photo.jpg",
+      "filename": "upload-1642234567890-123456789.jpg",
+      "path": "uploads/upload-1642234567890-123456789.jpg",
+      "size": 2457600,
+      "mimetype": "image/jpeg",
+      "thumbnail": "/api/images/thumbnail?path=uploads%2Fupload-1642234567890-123456789.jpg&size=300"
+    }
+  }
+  ```
+  
+  ## Features
+  - Automatic unique filename generation
+  - Background thumbnail generation for all sizes
+  - Immediate thumbnail URL availability
+  - File metadata extraction
+}
+
+tests {
+  test("should return 200 on successful upload", function() {
+    expect(res.getStatus()).to.equal(200);
+  });
+  
+  test("should return success flag", function() {
+    const body = res.getBody();
+    expect(body.success).to.be.true;
+  });
+  
+  test("should include file metadata", function() {
+    const body = res.getBody();
+    expect(body.file).to.be.an("object");
+    expect(body.file.name).to.be.a("string");
+    expect(body.file.size).to.be.a("number");
+    expect(body.file.thumbnail).to.be.a("string");
+  });
+}
