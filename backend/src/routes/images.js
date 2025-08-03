@@ -11,8 +11,18 @@ router.get('/browse', async (req, res) => {
     const { config } = req.app.locals;
     const requestedPath = req.query.path || '';
     
+    // Determine base directory (photos or uploads)
+    let baseDir = config.photosDir;
+    let safePath = path.resolve(baseDir, requestedPath);
+    
+    // Check if we're browsing uploads specifically
+    if (requestedPath.startsWith('uploads/') || requestedPath === 'uploads') {
+      baseDir = config.uploadDir;
+      const uploadsPath = requestedPath === 'uploads' ? '' : requestedPath.replace('uploads/', '');
+      safePath = path.resolve(baseDir, uploadsPath);
+    }
+    
     // Security: Ensure path is within allowed directories
-    const safePath = path.resolve(config.photosDir, requestedPath);
     if (!safePath.startsWith(config.photosDir) && !safePath.startsWith(config.uploadDir)) {
       return res.status(403).json({ error: 'Access denied' });
     }
@@ -25,9 +35,26 @@ router.get('/browse', async (req, res) => {
     const directories = [];
     const images = [];
 
+    // Add uploads directory at root level if we're in photos dir
+    if (requestedPath === '' && baseDir === config.photosDir) {
+      directories.push({
+        name: 'uploads',
+        path: 'uploads'
+      });
+    }
+
     for (const item of items) {
       const itemPath = path.join(safePath, item.name);
-      const relativePath = path.relative(config.photosDir, itemPath);
+      let relativePath;
+      
+      // Calculate relative path based on which directory we're in
+      if (baseDir === config.uploadDir) {
+        relativePath = requestedPath === 'uploads' ? 
+          `uploads/${item.name}` : 
+          `uploads/${path.relative(config.uploadDir, itemPath)}`;
+      } else {
+        relativePath = path.relative(config.photosDir, itemPath);
+      }
 
       if (item.isDirectory()) {
         directories.push({
@@ -47,9 +74,9 @@ router.get('/browse', async (req, res) => {
     }
 
     res.json({
-      currentPath: path.relative(config.photosDir, safePath),
+      currentPath: requestedPath,
       directories: directories.sort((a, b) => a.name.localeCompare(b.name)),
-      images: images.sort((a, b) => a.name.localeCompare(b.name))
+      images: images.sort((a, b) => b.modified.localeCompare(a.modified)) // Sort by newest first
     });
 
   } catch (error) {
@@ -68,7 +95,15 @@ router.get('/serve', async (req, res) => {
       return res.status(400).json({ error: 'Path parameter required' });
     }
 
-    const fullPath = path.resolve(config.photosDir, imagePath);
+    // Determine the correct base directory for the image
+    let fullPath;
+    if (imagePath.startsWith('uploads/')) {
+      // Remove 'uploads/' prefix and resolve from uploadDir
+      const uploadPath = imagePath.replace('uploads/', '');
+      fullPath = path.resolve(config.uploadDir, uploadPath);
+    } else {
+      fullPath = path.resolve(config.photosDir, imagePath);
+    }
     
     // Security check
     if (!fullPath.startsWith(config.photosDir) && !fullPath.startsWith(config.uploadDir)) {
@@ -118,7 +153,15 @@ router.get('/thumbnail', async (req, res) => {
       return res.status(400).json({ error: 'Invalid thumbnail size' });
     }
 
-    const fullPath = path.resolve(config.photosDir, imagePath);
+    // Determine the correct base directory for the image
+    let fullPath;
+    if (imagePath.startsWith('uploads/')) {
+      // Remove 'uploads/' prefix and resolve from uploadDir
+      const uploadPath = imagePath.replace('uploads/', '');
+      fullPath = path.resolve(config.uploadDir, uploadPath);
+    } else {
+      fullPath = path.resolve(config.photosDir, imagePath);
+    }
     
     // Security check
     if (!fullPath.startsWith(config.photosDir) && !fullPath.startsWith(config.uploadDir)) {

@@ -107,7 +107,7 @@ export function ImageBrowser({ onImageSelect, className = '' }: ImageBrowserProp
 
       {/* Directory listing */}
       {data && (
-        <div className="space-y-4">
+        <div className="space-y-4 max-h-full overflow-y-auto">
           {/* Directories */}
           {data.directories.length > 0 && (
             <div>

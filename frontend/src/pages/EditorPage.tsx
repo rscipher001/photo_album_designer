@@ -1,5 +1,5 @@
 import { useParams } from 'react-router-dom';
-import { useState, useRef, useEffect } from 'react';
+import { useState, useRef, useEffect, useCallback } from 'react';
 import { fabric } from 'fabric';
 import { useProject, useUpdateProject, useCreateProject } from '../hooks/useProjects';
 import { FabricCanvas } from '../components/Canvas/FabricCanvas';
@@ -42,40 +42,36 @@ export function EditorPage() {
   /**
    * Handle canvas changes to track unsaved state
    */
-  const handleCanvasChange = () => {
+  const handleCanvasChange = useCallback(() => {
     setHasUnsavedChanges(true);
     
-    // Auto-save after 2 seconds of inactivity
-    setTimeout(() => {
-      if (projectId) {
-        handleSave();
-      }
-    }, 2000);
-  };
+    // Note: Auto-save disabled to prevent dependency issues
+    // TODO: Implement proper auto-save with useRef or debouncing
+  }, []);
 
   /**
    * Handle canvas ready callback
    */
-  const handleCanvasReady = (canvas: fabric.Canvas) => {
+  const handleCanvasReady = useCallback((canvas: fabric.Canvas) => {
     setFabricCanvas(canvas);
-  };
+  }, []);
 
   /**
    * Handle object selection changes from canvas
    */
-  const handleSelectionChange = (selected: fabric.Object | null) => {
+  const handleSelectionChange = useCallback((selected: fabric.Object | null) => {
     setSelectedObject(selected);
-  };
+  }, []);
 
   /**
    * Handle image selection from browser - add to canvas
    */
-  const handleImageSelect = (image: ImageFile) => {
+  const handleImageSelect = useCallback((image: ImageFile) => {
     // Access canvas methods through ref
     if (canvasRef.current && canvasRef.current.addImage) {
       canvasRef.current.addImage(image);
     }
-  };
+  }, []);
 
   /**
    * Save project data to backend
@@ -241,7 +237,7 @@ export function EditorPage() {
             <div className="p-3 border-b border-gray-700">
               <h3 className="text-sm font-semibold text-gray-300">Photos</h3>
             </div>
-            <div className="h-64 overflow-hidden">
+            <div className="h-64 overflow-y-auto">
               <ImageBrowser 
                 onImageSelect={handleImageSelect}
                 className="h-full"

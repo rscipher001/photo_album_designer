@@ -96,7 +96,7 @@ export const FabricCanvas = forwardRef<any, FabricCanvasProps>(({
       canvas.dispose();
       fabricCanvasRef.current = null;
     };
-  }, [width, height, onSelectionChange, onCanvasChange]);
+  }, [width, height, onSelectionChange, onCanvasChange, onCanvasReady]);
 
   /**
    * Update canvas size when dimensions change
@@ -120,48 +120,67 @@ export const FabricCanvas = forwardRef<any, FabricCanvasProps>(({
     // Create image URL for the original image (not thumbnail)
     const imageUrl = `/api/images/serve?path=${encodeURIComponent(imageFile.path)}`;
 
+    console.log('Attempting to load image:', imageUrl);
+
     // Load image and add to canvas
-    fabric.Image.fromURL(imageUrl, (img) => {
-      if (!fabricCanvasRef.current) return;
+    fabric.Image.fromURL(
+      imageUrl, 
+      (img) => {
+        if (!fabricCanvasRef.current) return;
 
-      // Calculate scale to fit image reasonably on canvas (max 400px)
-      const maxSize = 400;
-      const scale = Math.min(
-        maxSize / (img.width || 1),
-        maxSize / (img.height || 1),
-        1 // Don't upscale images
-      );
+        console.log('Image loaded successfully:', imageUrl, 'Size:', img.width, 'x', img.height);
+        console.log('Canvas dimensions:', width, 'x', height);
+        console.log('Canvas objects before adding:', fabricCanvasRef.current.getObjects().length);
 
-      // Apply scaling
-      img.scale(scale);
+        // Calculate scale to fit image reasonably on canvas (max 400px)
+        const maxSize = 400;
+        const scale = Math.min(
+          maxSize / (img.width || 1),
+          maxSize / (img.height || 1),
+          1 // Don't upscale images
+        );
 
-      // Position image (center by default or use provided position)
-      if (position) {
-        img.set({
-          left: position.x,
-          top: position.y
-        });
-      } else {
-        // Center the image on canvas
-        img.set({
-          left: (width - (img.width || 0) * scale) / 2,
-          top: (height - (img.height || 0) * scale) / 2
-        });
+        console.log('Calculated scale:', scale);
+
+        // Apply scaling
+        img.scale(scale);
+
+        // Position image (center by default or use provided position)
+        if (position) {
+          img.set({
+            left: position.x,
+            top: position.y
+          });
+          console.log('Positioned at:', position.x, position.y);
+        } else {
+          // Center the image on canvas
+          const leftPos = (width - (img.width || 0) * scale) / 2;
+          const topPos = (height - (img.height || 0) * scale) / 2;
+          img.set({
+            left: leftPos,
+            top: topPos
+          });
+          console.log('Centered at:', leftPos, topPos);
+        }
+
+        // Add metadata to the image object for later reference
+        (img as any).id = `image_${Date.now()}`; // Unique identifier
+        (img as any).originalPath = imageFile.path; // Store original file path
+        (img as any).originalName = imageFile.name; // Store original file name
+
+        // Add image to canvas and make it the active selection
+        fabricCanvasRef.current.add(img);
+        fabricCanvasRef.current.setActiveObject(img);
+        fabricCanvasRef.current.renderAll();
+        
+        console.log('Canvas objects after adding:', fabricCanvasRef.current.getObjects().length);
+        console.log('Active object:', fabricCanvasRef.current.getActiveObject());
+      }, 
+      {
+        // Image loading options
+        crossOrigin: 'anonymous' // Allow cross-origin images
       }
-
-      // Add metadata to the image object for later reference
-      (img as any).id = `image_${Date.now()}`; // Unique identifier
-      (img as any).originalPath = imageFile.path; // Store original file path
-      (img as any).originalName = imageFile.name; // Store original file name
-
-      // Add image to canvas and make it the active selection
-      fabricCanvasRef.current.add(img);
-      fabricCanvasRef.current.setActiveObject(img);
-      fabricCanvasRef.current.renderAll();
-    }, {
-      // Image loading options
-      crossOrigin: 'anonymous' // Allow cross-origin images
-    });
+    );
   };
 
   /**
