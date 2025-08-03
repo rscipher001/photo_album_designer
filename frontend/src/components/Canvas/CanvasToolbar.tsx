@@ -116,6 +116,13 @@ export function CanvasToolbar({
     const image = selectedObject as fabric.Image;
     const imageBounds = image.getBoundingRect();
 
+    // Deselect all objects and make image non-selectable during crop
+    canvas.discardActiveObject();
+    image.set({
+      selectable: false,
+      evented: false
+    });
+
     // Create crop rectangle (initially covers 80% of the image)
     const cropWidth = imageBounds.width * 0.8;
     const cropHeight = imageBounds.height * 0.8;
@@ -127,7 +134,7 @@ export function CanvasToolbar({
       top: cropTop,
       width: cropWidth,
       height: cropHeight,
-      fill: 'rgba(0, 123, 255, 0.1)',
+      fill: 'rgba(0, 123, 255, 0.2)',
       stroke: '#007bff',
       strokeWidth: 2,
       strokeDashArray: [5, 5],
@@ -140,11 +147,14 @@ export function CanvasToolbar({
       cornerColor: '#007bff'
     });
     
-    // Add custom properties
+    // Add custom properties to identify this as a crop tool
     (cropRect as any).id = 'crop-rectangle';
     (cropRect as any).targetImage = image;
+    (cropRect as any).isCropTool = true;
+    (cropRect as any).isTemporary = true;
+    (cropRect as any).excludeFromExport = true;
 
-    // Add crop rectangle to canvas
+    // Add crop rectangle to canvas and make it active
     canvas.add(cropRect);
     canvas.setActiveObject(cropRect);
     canvas.renderAll();
@@ -200,7 +210,7 @@ export function CanvasToolbar({
       const relativeWidth = cropBounds.width / scaleX;
       const relativeHeight = cropBounds.height / scaleY;
 
-      // Apply crop to the image using clipPath
+      // Create clipPath to crop the image
       const clipPath = new fabric.Rect({
         left: relativeLeft,
         top: relativeTop,
@@ -209,23 +219,49 @@ export function CanvasToolbar({
         absolutePositioned: true
       });
 
+      // Apply the crop
       targetImage.set({
         clipPath: clipPath
       });
 
-      // Clean up
+      // Restore image selectability and clean up
+      targetImage.set({
+        selectable: true,
+        evented: true
+      });
+
+      // Remove crop rectangle and overlay
       canvas.remove(cropRect);
       canvas.setActiveObject(targetImage);
       canvas.renderAll();
-      document.body.removeChild(overlay);
+      
+      // Remove overlay safely
+      if (overlay && overlay.parentNode) {
+        overlay.parentNode.removeChild(overlay);
+      }
+
+      console.log('Crop applied successfully');
     };
 
     // Cancel crop function
     const cancelCrop = () => {
+      // Restore image selectability
+      targetImage.set({
+        selectable: true,
+        evented: true
+      });
+
+      // Remove crop rectangle and restore selection
       canvas.remove(cropRect);
       canvas.setActiveObject(targetImage);
       canvas.renderAll();
-      document.body.removeChild(overlay);
+      
+      // Remove overlay safely
+      if (overlay && overlay.parentNode) {
+        overlay.parentNode.removeChild(overlay);
+      }
+
+      console.log('Crop cancelled');
     };
 
     // Add event listeners

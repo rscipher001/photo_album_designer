@@ -233,9 +233,19 @@ export const FabricCanvas = forwardRef<any, FabricCanvasProps>(({
   const getCanvasData = () => {
     if (!fabricCanvasRef.current) return null;
 
-    return fabricCanvasRef.current.toJSON([
+    // Get canvas data but exclude temporary crop tools
+    const canvasData = fabricCanvasRef.current.toJSON([
       'id', 'originalPath', 'originalName' // Include custom properties
     ]);
+
+    // Filter out crop tools and other temporary objects
+    if (canvasData.objects) {
+      canvasData.objects = canvasData.objects.filter((obj: any) => 
+        !obj.isCropTool && !obj.isTemporary && obj.id !== 'crop-rectangle'
+      );
+    }
+
+    return canvasData;
   };
 
   /**
