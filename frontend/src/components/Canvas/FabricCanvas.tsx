@@ -8,6 +8,7 @@ interface FabricCanvasProps {
   height: number;
   onSelectionChange?: (selected: fabric.Object | null) => void;
   onCanvasChange?: () => void;
+  onCanvasReady?: (canvas: fabric.Canvas) => void;
   className?: string;
 }
 
@@ -25,6 +26,7 @@ export const FabricCanvas = forwardRef<any, FabricCanvasProps>(({
   height, 
   onSelectionChange, 
   onCanvasChange,
+  onCanvasReady,
   className = '' 
 }, ref) => {
   // Ref to the canvas DOM element
@@ -52,6 +54,11 @@ export const FabricCanvas = forwardRef<any, FabricCanvasProps>(({
 
     // Store canvas reference for later use
     fabricCanvasRef.current = canvas;
+    
+    // Notify parent that canvas is ready
+    if (onCanvasReady) {
+      onCanvasReady(canvas);
+    }
 
     /**
      * Handle selection events when objects are selected/deselected

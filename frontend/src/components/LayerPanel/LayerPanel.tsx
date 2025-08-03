@@ -98,7 +98,11 @@ export function LayerPanel({ canvas, onLayerSelect, className = '' }: LayerPanel
    * Set up event listeners to keep layer panel in sync with canvas
    */
   useEffect(() => {
-    if (!canvas) return;
+    // Check if canvas exists and has the necessary methods
+    if (!canvas || typeof canvas.on !== 'function') {
+      setLayers([]); // Clear layers if no valid canvas
+      return;
+    }
 
     // Event handlers for canvas changes
     const handleObjectAdded = () => updateLayers();
@@ -126,12 +130,15 @@ export function LayerPanel({ canvas, onLayerSelect, className = '' }: LayerPanel
 
     // Cleanup event listeners on unmount
     return () => {
-      canvas.off('object:added', handleObjectAdded);
-      canvas.off('object:removed', handleObjectRemoved);
-      canvas.off('object:modified', handleObjectModified);
-      canvas.off('selection:created', handleSelectionCreated);
-      canvas.off('selection:updated', handleSelectionCreated);
-      canvas.off('selection:cleared', handleSelectionCleared);
+      // Check if canvas still exists and has off method before cleaning up
+      if (canvas && typeof canvas.off === 'function') {
+        canvas.off('object:added', handleObjectAdded);
+        canvas.off('object:removed', handleObjectRemoved);
+        canvas.off('object:modified', handleObjectModified);
+        canvas.off('selection:created', handleSelectionCreated);
+        canvas.off('selection:updated', handleSelectionCreated);
+        canvas.off('selection:cleared', handleSelectionCleared);
+      }
     };
   }, [canvas]);
 
@@ -141,7 +148,7 @@ export function LayerPanel({ canvas, onLayerSelect, className = '' }: LayerPanel
    * @param layer - The layer to select
    */
   const handleLayerSelect = (layer: Layer) => {
-    if (!canvas) return;
+    if (!canvas || typeof canvas.setActiveObject !== 'function') return;
 
     // Set the object as active on canvas
     canvas.setActiveObject(layer.object);
@@ -162,7 +169,7 @@ export function LayerPanel({ canvas, onLayerSelect, className = '' }: LayerPanel
    * @param layer - The layer to toggle
    */
   const toggleLayerVisibility = (layer: Layer) => {
-    if (!canvas) return;
+    if (!canvas || typeof canvas.renderAll !== 'function') return;
 
     // Toggle visibility on the fabric object
     layer.object.set('visible', !layer.visible);
@@ -178,7 +185,7 @@ export function LayerPanel({ canvas, onLayerSelect, className = '' }: LayerPanel
    * @param layer - The layer to toggle
    */
   const toggleLayerLock = (layer: Layer) => {
-    if (!canvas) return;
+    if (!canvas || typeof canvas.renderAll !== 'function') return;
 
     // Toggle selectable property (locked = not selectable)
     const newSelectable = layer.locked;
@@ -197,7 +204,7 @@ export function LayerPanel({ canvas, onLayerSelect, className = '' }: LayerPanel
    * @param layer - The layer to delete
    */
   const deleteLayer = (layer: Layer) => {
-    if (!canvas) return;
+    if (!canvas || typeof canvas.remove !== 'function') return;
 
     // Remove object from canvas
     canvas.remove(layer.object);
@@ -215,7 +222,7 @@ export function LayerPanel({ canvas, onLayerSelect, className = '' }: LayerPanel
    * @param layer - The layer to move up
    */
   const moveLayerUp = (layer: Layer) => {
-    if (!canvas) return;
+    if (!canvas || typeof canvas.bringForward !== 'function') return;
 
     // Bring object forward in z-order
     canvas.bringForward(layer.object);
@@ -229,7 +236,7 @@ export function LayerPanel({ canvas, onLayerSelect, className = '' }: LayerPanel
    * @param layer - The layer to move down
    */
   const moveLayerDown = (layer: Layer) => {
-    if (!canvas) return;
+    if (!canvas || typeof canvas.sendBackwards !== 'function') return;
 
     // Send object backward in z-order
     canvas.sendBackwards(layer.object);
@@ -244,7 +251,7 @@ export function LayerPanel({ canvas, onLayerSelect, className = '' }: LayerPanel
    * @param opacity - New opacity value (0-1)
    */
   const updateLayerOpacity = (layer: Layer, opacity: number) => {
-    if (!canvas) return;
+    if (!canvas || typeof canvas.renderAll !== 'function') return;
 
     // Set opacity on fabric object
     layer.object.set('opacity', opacity);

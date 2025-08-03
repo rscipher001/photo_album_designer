@@ -29,6 +29,7 @@ export function EditorPage() {
   const [selectedObject, setSelectedObject] = useState<fabric.Object | null>(null);
   const [hasUnsavedChanges, setHasUnsavedChanges] = useState(false);
   const [isAutoSaving, setIsAutoSaving] = useState(false);
+  const [fabricCanvas, setFabricCanvas] = useState<fabric.Canvas | null>(null);
   
   // Refs for accessing canvas methods
   const canvasRef = useRef<any>(null);
@@ -50,6 +51,13 @@ export function EditorPage() {
         handleSave();
       }
     }, 2000);
+  };
+
+  /**
+   * Handle canvas ready callback
+   */
+  const handleCanvasReady = (canvas: fabric.Canvas) => {
+    setFabricCanvas(canvas);
   };
 
   /**
@@ -244,7 +252,7 @@ export function EditorPage() {
           {/* Layer Panel Section */}
           <div className="flex-1 min-h-0 border-t border-gray-700">
             <LayerPanel 
-              canvas={canvasRef.current}
+              canvas={fabricCanvas}
               className="h-full"
             />
           </div>
@@ -254,7 +262,7 @@ export function EditorPage() {
         <div className="flex-1 flex flex-col min-w-0">
           {/* Canvas Toolbar */}
           <CanvasToolbar 
-            canvas={canvasRef.current}
+            canvas={fabricCanvas}
             selectedObject={selectedObject}
           />
 
@@ -267,6 +275,7 @@ export function EditorPage() {
                 height={canvasSize.height}
                 onSelectionChange={handleSelectionChange}
                 onCanvasChange={handleCanvasChange}
+                onCanvasReady={handleCanvasReady}
                 className="shadow-2xl"
               />
             </div>
