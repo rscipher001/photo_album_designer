@@ -282,12 +282,30 @@ export function CanvasToolbar({
       fabric.Image.fromURL(croppedDataUrl, (croppedImg) => {
         if (!canvas) return;
         
-        // Position the new image where the original was
+        // Calculate the correct scale for the cropped image
+        // The cropped image should fill the crop rectangle area
+        const cropImageWidth = croppedImg.width || 1;
+        const cropImageHeight = croppedImg.height || 1;
+        
+        const targetScaleX = cropW / cropImageWidth;
+        const targetScaleY = cropH / cropImageHeight;
+        
+        // Position the new image where the crop rectangle was
         croppedImg.set({
-          left: targetImage.left,
-          top: targetImage.top,
-          scaleX: targetImage.scaleX,
-          scaleY: targetImage.scaleY
+          left: cropBounds.left,
+          top: cropBounds.top,
+          scaleX: targetScaleX,
+          scaleY: targetScaleY
+        });
+        
+        console.log('Cropped image scaling:', {
+          cropImageWidth,
+          cropImageHeight,
+          cropW,
+          cropH,
+          targetScaleX,
+          targetScaleY,
+          originalScale: { x: targetImage.scaleX, y: targetImage.scaleY }
         });
         
         // Copy custom properties
