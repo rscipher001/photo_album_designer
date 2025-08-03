@@ -214,6 +214,7 @@ export function CanvasToolbar({
       const cropBounds = cropRect.getBoundingRect();
       const imageBounds = targetImage.getBoundingRect();
       
+      console.log('=== CROP DEBUG INFO ===');
       console.log('Crop rectangle bounds:', cropBounds);
       console.log('Image bounding rect:', imageBounds);
       console.log('Target image properties:', {
@@ -222,84 +223,96 @@ export function CanvasToolbar({
         scaleX: targetImage.scaleX,
         scaleY: targetImage.scaleY,
         left: targetImage.left,
-        top: targetImage.top
+        top: targetImage.top,
+        originX: targetImage.originX,
+        originY: targetImage.originY
       });
       
-      // Calculate crop coordinates relative to the scaled image on canvas
+      // Try a direct approach - create a new cropped image instead of using clipPath
+      const cropCanvas = document.createElement('canvas');
+      const cropCtx = cropCanvas.getContext('2d');
+      
+      if (!cropCtx) {
+        console.error('Could not create crop canvas context');
+        cancelCrop();
+        return;
+      }
+
+      // Calculate crop area
       const cropX = Math.max(0, cropBounds.left - imageBounds.left);
       const cropY = Math.max(0, cropBounds.top - imageBounds.top);
       const cropW = Math.min(cropBounds.width, imageBounds.width - cropX);
       const cropH = Math.min(cropBounds.height, imageBounds.height - cropY);
       
-      // Convert to percentages of the displayed image
-      const leftPercent = cropX / imageBounds.width;
-      const topPercent = cropY / imageBounds.height;
-      const widthPercent = cropW / imageBounds.width;
-      const heightPercent = cropH / imageBounds.height;
+      // Set canvas size to crop dimensions
+      cropCanvas.width = cropW;
+      cropCanvas.height = cropH;
       
-      // Convert percentages to actual pixel coordinates in the original image
-      const originalWidth = targetImage.width || 1;
-      const originalHeight = targetImage.height || 1;
+      console.log('Crop area:', { cropX, cropY, cropW, cropH });
       
-      const clipLeft = leftPercent * originalWidth;
-      const clipTop = topPercent * originalHeight;
-      const clipWidth = widthPercent * originalWidth;
-      const clipHeight = heightPercent * originalHeight;
-
-      console.log('Detailed crop calculation:', {
-        // Canvas coordinates
-        cropBounds,
-        imageBounds,
-        cropX, cropY, cropW, cropH,
-        
-        // Percentages
-        leftPercent, topPercent, widthPercent, heightPercent,
-        
-        // Original image
-        originalWidth, originalHeight,
-        
-        // Final clip coordinates
-        clipLeft, clipTop, clipWidth, clipHeight
-      });
-
-      // Validate crop area
-      if (clipWidth <= 0 || clipHeight <= 0) {
-        console.warn('Invalid crop dimensions');
+      // Get the original image element
+      const imageElement = (targetImage as any)._element;
+      if (!imageElement) {
+        console.error('Could not get image element');
         cancelCrop();
         return;
       }
-
-      // Create clipPath with coordinates relative to the original image
-      const clipPath = new fabric.Rect({
-        left: clipLeft,
-        top: clipTop,
-        width: clipWidth,
-        height: clipHeight,
-        absolutePositioned: false
+      
+      // Calculate source coordinates on the original image
+      const scaleX = targetImage.scaleX || 1;
+      const scaleY = targetImage.scaleY || 1;
+      const sourceX = (cropX / scaleX);
+      const sourceY = (cropY / scaleY);
+      const sourceW = cropW / scaleX;
+      const sourceH = cropH / scaleY;
+      
+      console.log('Source coordinates:', { sourceX, sourceY, sourceW, sourceH });
+      console.log('Original image size:', { width: imageElement.naturalWidth, height: imageElement.naturalHeight });
+      
+      // Draw the cropped portion
+      cropCtx.drawImage(
+        imageElement,
+        sourceX, sourceY, sourceW, sourceH, // Source rectangle
+        0, 0, cropW, cropH                   // Destination rectangle
+      );
+      
+      // Create new fabric image from the cropped canvas
+      const croppedDataUrl = cropCanvas.toDataURL();
+      
+      fabric.Image.fromURL(croppedDataUrl, (croppedImg) => {
+        if (!canvas) return;
+        
+        // Position the new image where the original was
+        croppedImg.set({
+          left: targetImage.left,
+          top: targetImage.top,
+          scaleX: targetImage.scaleX,
+          scaleY: targetImage.scaleY
+        });
+        
+        // Copy custom properties
+        (croppedImg as any).id = (targetImage as any).id;
+        (croppedImg as any).originalPath = (targetImage as any).originalPath;
+        (croppedImg as any).originalName = (targetImage as any).originalName + ' (cropped)';
+        
+        // Replace the original image with the cropped one
+        canvas.remove(targetImage);
+        canvas.add(croppedImg);
+        canvas.setActiveObject(croppedImg);
+        canvas.renderAll();
+        
+        console.log('Crop completed successfully');
       });
 
-      // Apply the crop
-      targetImage.set({
-        clipPath: clipPath
-      });
-
-      // Restore image selectability and clean up
-      targetImage.set({
-        selectable: true,
-        evented: true
-      });
-
-      // Remove crop rectangle and overlay
+      // Clean up
       canvas.remove(cropRect);
-      canvas.setActiveObject(targetImage);
-      canvas.renderAll();
       
       // Remove overlay safely
       if (overlay && overlay.parentNode) {
         overlay.parentNode.removeChild(overlay);
       }
 
-      console.log('Crop applied successfully');
+      console.log('=== END CROP DEBUG ===');
     };
 
     // Cancel crop function
