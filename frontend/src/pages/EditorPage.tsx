@@ -85,6 +85,38 @@ export function EditorPage() {
   }, []);
 
   /**
+   * Handle keyboard shortcuts
+   */
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      // Ctrl+S or Cmd+S to save
+      if ((e.ctrlKey || e.metaKey) && e.key === 's') {
+        e.preventDefault();
+        handleSave();
+      }
+      
+      // Ctrl+Z or Cmd+Z for undo (if canvas supports it)
+      if ((e.ctrlKey || e.metaKey) && e.key === 'z' && !e.shiftKey) {
+        e.preventDefault();
+        // TODO: Implement undo functionality
+        console.log('Undo not yet implemented');
+      }
+      
+      // Delete key to delete selected object
+      if (e.key === 'Delete' || e.key === 'Backspace') {
+        if (selectedObject && canvasRef.current) {
+          e.preventDefault();
+          fabricCanvas?.remove(selectedObject);
+          fabricCanvas?.renderAll();
+        }
+      }
+    };
+
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, [selectedObject, fabricCanvas]);
+
+  /**
    * Save project data to backend
    * Captures current canvas state and project metadata
    */
@@ -232,10 +264,20 @@ export function EditorPage() {
           </button>
           <button 
             onClick={handleExport}
-            className="px-3 py-1 bg-primary-600 hover:bg-primary-700 rounded text-sm transition-colors"
+            className="px-3 py-1 bg-blue-600 hover:bg-blue-700 rounded text-sm transition-colors"
           >
             Export
           </button>
+          
+          {/* Save status indicator */}
+          {hasUnsavedChanges && !isAutoSaving && (
+            <span className="text-xs text-yellow-400 flex items-center">
+              <svg className="w-3 h-3 mr-1" fill="currentColor" viewBox="0 0 20 20">
+                <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
+              </svg>
+              Unsaved changes
+            </span>
+          )}
         </div>
       </div>
 

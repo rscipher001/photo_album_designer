@@ -2,7 +2,7 @@ import { useState } from 'react';
 import { fabric } from 'fabric';
 
 // Define the available tools in the toolbar
-type Tool = 'select' | 'crop' | 'rotate' | 'text' | 'delete';
+type Tool = 'select' | 'crop' | 'rotate' | 'text' | 'delete' | 'duplicate' | 'flip' | 'align';
 
 // Props interface for the CanvasToolbar component
 interface CanvasToolbarProps {
@@ -80,6 +80,27 @@ export function CanvasToolbar({
         // Delete selected object
         if (selectedObject) {
           deleteSelectedObject();
+        }
+        break;
+
+      case 'duplicate':
+        // Duplicate selected object
+        if (selectedObject) {
+          duplicateSelectedObject();
+        }
+        break;
+
+      case 'flip':
+        // Flip selected object horizontally
+        if (selectedObject) {
+          flipSelectedObject();
+        }
+        break;
+
+      case 'align':
+        // Show alignment options for selected object
+        if (selectedObject) {
+          alignSelectedObject();
         }
         break;
     }
@@ -186,6 +207,55 @@ export function CanvasToolbar({
   };
 
   /**
+   * Duplicate the currently selected object
+   */
+  const duplicateSelectedObject = () => {
+    if (!canvas || !selectedObject) return;
+
+    // Clone the selected object
+    selectedObject.clone((cloned: fabric.Object) => {
+      // Offset the cloned object slightly
+      cloned.set({
+        left: (cloned.left || 0) + 20,
+        top: (cloned.top || 0) + 20,
+      });
+
+      // Add unique ID to cloned object
+      (cloned as any).id = `${selectedObject.type}_${Date.now()}`;
+
+      // Add to canvas and select the clone
+      canvas.add(cloned);
+      canvas.setActiveObject(cloned);
+      canvas.renderAll();
+    });
+  };
+
+  /**
+   * Flip the currently selected object horizontally
+   */
+  const flipSelectedObject = () => {
+    if (!canvas || !selectedObject) return;
+
+    // Toggle horizontal flip
+    const currentFlipX = selectedObject.flipX || false;
+    selectedObject.set('flipX', !currentFlipX);
+    
+    canvas.renderAll();
+  };
+
+  /**
+   * Align the currently selected object to canvas
+   */
+  const alignSelectedObject = () => {
+    if (!canvas || !selectedObject) return;
+
+    // Center the object on the canvas
+    selectedObject.center();
+    
+    canvas.renderAll();
+  };
+
+  /**
    * Zoom the canvas view
    * 
    * @param direction - 'in' to zoom in, 'out' to zoom out, 'fit' to fit canvas
@@ -268,6 +338,36 @@ export function CanvasToolbar({
         </svg>
       ),
       // Only available when an object is selected
+      available: !!selectedObject
+    },
+    {
+      tool: 'duplicate' as Tool,
+      label: 'Duplicate',
+      icon: (
+        <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z" />
+        </svg>
+      ),
+      available: !!selectedObject
+    },
+    {
+      tool: 'flip' as Tool,
+      label: 'Flip',
+      icon: (
+        <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7h12m0 0l-4-4m4 4l-4 4m0 6H4m0 0l4 4m-4-4l4-4" />
+        </svg>
+      ),
+      available: !!selectedObject
+    },
+    {
+      tool: 'align' as Tool,
+      label: 'Center',
+      icon: (
+        <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 12h16M4 18h16" />
+        </svg>
+      ),
       available: !!selectedObject
     }
   ];
