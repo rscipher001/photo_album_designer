@@ -593,7 +593,7 @@ export function CanvasToolbar({
   ];
 
   return (
-    <div className={`bg-gray-800 border-b border-gray-700 px-4 py-2 ${className}`}>
+    <div className={`bg-white dark:bg-slate-800 border-b border-slate-200 dark:border-slate-700 px-4 py-2 shadow-sm ${className}`}>
       <div className="flex items-center justify-between">
         {/* Main toolbar buttons */}
         <div className="flex items-center space-x-1">
@@ -604,10 +604,10 @@ export function CanvasToolbar({
               disabled={!button.available}
               className={`p-2 rounded transition-colors ${
                 activeTool === button.tool
-                  ? 'bg-primary-600 text-white'
+                  ? 'bg-emerald-500 text-white'
                   : button.available
-                    ? 'hover:bg-gray-700 text-gray-300'
-                    : 'text-gray-500 cursor-not-allowed'
+                    ? 'hover:bg-slate-100 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-300'
+                    : 'text-slate-400 dark:text-slate-500 cursor-not-allowed'
               }`}
               title={button.label}
             >
@@ -620,7 +620,7 @@ export function CanvasToolbar({
         <div className="flex items-center space-x-1">
           <button
             onClick={() => handleZoom('out')}
-            className="p-1 hover:bg-gray-700 text-gray-300 rounded"
+            className="p-1 hover:bg-slate-100 dark:hover:bg-slate-700 text-slate-600 dark:text-slate-300 rounded"
             title="Zoom Out"
           >
             <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -630,7 +630,7 @@ export function CanvasToolbar({
           
           <button
             onClick={() => handleZoom('fit')}
-            className="px-2 py-1 hover:bg-gray-700 text-gray-300 rounded text-xs"
+            className="px-2 py-1 hover:bg-slate-100 dark:hover:bg-slate-700 text-slate-600 dark:text-slate-300 rounded text-xs border border-slate-300 dark:border-slate-600"
             title="Fit to View"
           >
             100%
@@ -638,7 +638,7 @@ export function CanvasToolbar({
           
           <button
             onClick={() => handleZoom('in')}
-            className="p-1 hover:bg-gray-700 text-gray-300 rounded"
+            className="p-1 hover:bg-slate-100 dark:hover:bg-slate-700 text-slate-600 dark:text-slate-300 rounded"
             title="Zoom In"
           >
             <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">

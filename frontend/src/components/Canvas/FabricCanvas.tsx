@@ -295,11 +295,11 @@ export const FabricCanvas = forwardRef<any, FabricCanvasProps>(({
       {/* Canvas element */}
       <canvas
         ref={canvasRef}
-        className="border border-gray-300 shadow-sm"
+        className="border border-slate-300 shadow-lg rounded-lg"
       />
       
       {/* Canvas overlay info */}
-      <div className="absolute top-2 left-2 bg-black bg-opacity-50 text-white text-xs px-2 py-1 rounded">
+      <div className="absolute top-2 left-2 bg-slate-800 bg-opacity-80 text-white text-xs px-2 py-1 rounded-md">
         {width} × {height}
         {selectedObject && (
           <span className="ml-2">

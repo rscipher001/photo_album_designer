@@ -6,6 +6,7 @@ import { FabricCanvas } from '../components/Canvas/FabricCanvas';
 import { CanvasToolbar } from '../components/Canvas/CanvasToolbar';
 import { ImageBrowser } from '../components/ImageBrowser/ImageBrowser';
 import { LayerPanel } from '../components/LayerPanel/LayerPanel';
+import { ThemeToggle } from '../components/ThemeToggle';
 import type { ImageFile } from '../types';
 
 /**
@@ -242,9 +243,9 @@ export function EditorPage() {
   // Show loading state while project loads
   if (projectLoading) {
     return (
-      <div className="h-screen bg-gray-900 flex items-center justify-center">
-        <div className="text-white text-center">
-          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary-600 mx-auto mb-4"></div>
+      <div className="h-screen bg-slate-50 dark:bg-slate-900 flex items-center justify-center">
+        <div className="text-slate-700 dark:text-slate-300 text-center">
+          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-emerald-500 mx-auto mb-4"></div>
           <p>Loading project...</p>
         </div>
       </div>
@@ -252,37 +253,38 @@ export function EditorPage() {
   }
 
   return (
-    <div className="h-screen bg-gray-900 text-white flex flex-col">
+    <div className="h-screen bg-slate-50 dark:bg-slate-900 text-slate-800 dark:text-slate-200 flex flex-col">
       {/* Editor Header */}
-      <div className="bg-gray-800 border-b border-gray-700 px-4 py-2 flex items-center justify-between">
+      <div className="bg-white dark:bg-slate-800 border-b border-slate-200 dark:border-slate-700 px-4 py-2 flex items-center justify-between shadow-sm">
         <div className="flex items-center space-x-4">
           <h1 className="text-lg font-semibold">
             {project?.name || 'New Project'}
           </h1>
-          <div className="text-sm text-gray-400">
+          <div className="text-sm text-slate-500 dark:text-slate-400">
             {hasUnsavedChanges && '• Unsaved changes'}
             {isAutoSaving && '• Saving...'}
           </div>
         </div>
         
         <div className="flex items-center space-x-2">
+          <ThemeToggle />
           <button 
             onClick={handleSave}
             disabled={isAutoSaving || !hasUnsavedChanges}
-            className="px-3 py-1 bg-gray-700 hover:bg-gray-600 disabled:opacity-50 rounded text-sm transition-colors"
+            className="px-3 py-1 bg-slate-100 dark:bg-slate-700 hover:bg-slate-200 dark:hover:bg-slate-600 disabled:opacity-50 rounded text-sm transition-colors border border-slate-300 dark:border-slate-600"
           >
             {isAutoSaving ? 'Saving...' : 'Save'}
           </button>
           <button 
             onClick={handleExport}
-            className="px-3 py-1 bg-blue-600 hover:bg-blue-700 rounded text-sm transition-colors"
+            className="px-3 py-1 bg-emerald-500 hover:bg-emerald-600 text-white rounded text-sm transition-colors"
           >
             Export
           </button>
           
           {/* Save status indicator */}
           {hasUnsavedChanges && !isAutoSaving && (
-            <span className="text-xs text-yellow-400 flex items-center">
+            <span className="text-xs text-amber-600 flex items-center">
               <svg className="w-3 h-3 mr-1" fill="currentColor" viewBox="0 0 20 20">
                 <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
               </svg>
@@ -295,11 +297,11 @@ export function EditorPage() {
       {/* Editor Layout */}
       <div className="flex-1 flex overflow-hidden">
         {/* Left Sidebar - Image Browser and Layer Panel */}
-        <div className="w-80 bg-gray-800 border-r border-gray-700 flex flex-col">
+        <div className="w-80 bg-white dark:bg-slate-800 border-r border-slate-200 dark:border-slate-700 flex flex-col shadow-sm">
           {/* Image Browser Section */}
           <div className="flex-1 min-h-0">
-            <div className="p-3 border-b border-gray-700">
-              <h3 className="text-sm font-semibold text-gray-300">Photos</h3>
+            <div className="p-3 border-b border-slate-200 dark:border-slate-700">
+              <h3 className="text-sm font-semibold text-slate-700 dark:text-slate-300">Photos</h3>
             </div>
             <div className="h-64 overflow-y-auto">
               <ImageBrowser 
@@ -310,7 +312,7 @@ export function EditorPage() {
           </div>
 
           {/* Layer Panel Section */}
-          <div className="flex-1 min-h-0 border-t border-gray-700">
+          <div className="flex-1 min-h-0 border-t border-slate-200 dark:border-slate-700">
             <LayerPanel 
               canvas={fabricCanvas}
               className="h-full"
@@ -328,8 +330,8 @@ export function EditorPage() {
 
           {/* Canvas Container */}
           <div 
-            className={`flex-1 bg-gray-900 p-8 overflow-auto transition-colors ${
-              isDragOver ? 'bg-gray-800 ring-2 ring-blue-500 ring-inset' : ''
+            className={`flex-1 bg-slate-100 dark:bg-slate-700 p-8 overflow-auto transition-colors ${
+              isDragOver ? 'bg-slate-200 dark:bg-slate-600 ring-2 ring-emerald-400 ring-inset' : ''
             }`}
             onDragOver={(e) => {
               e.preventDefault();
@@ -376,8 +378,8 @@ export function EditorPage() {
             <div className="flex items-center justify-center min-h-full relative">
               {/* Drop overlay */}
               {isDragOver && (
-                <div className="absolute inset-0 flex items-center justify-center bg-black bg-opacity-50 rounded-lg z-10 pointer-events-none">
-                  <div className="bg-blue-600 text-white px-6 py-3 rounded-lg shadow-lg flex items-center space-x-2">
+                <div className="absolute inset-0 flex items-center justify-center bg-slate-900 bg-opacity-20 dark:bg-slate-100 dark:bg-opacity-20 rounded-lg z-10 pointer-events-none">
+                  <div className="bg-emerald-500 text-white px-6 py-3 rounded-lg shadow-lg flex items-center space-x-2">
                     <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 16V4m0 0L3 8m4-4l4 4m6 0v12m0 0l4-4m-4 4l-4-4" />
                     </svg>
@@ -400,29 +402,29 @@ export function EditorPage() {
         </div>
 
         {/* Right Sidebar - Properties */}
-        <div className="w-64 bg-gray-800 border-l border-gray-700 p-4">
+        <div className="w-64 bg-white dark:bg-slate-800 border-l border-slate-200 dark:border-slate-700 p-4 shadow-sm">
           {/* Canvas Properties */}
           <div className="mb-6">
-            <h3 className="text-sm font-semibold text-gray-300 mb-3">Canvas Size</h3>
+            <h3 className="text-sm font-semibold text-slate-700 dark:text-slate-300 mb-3">Canvas Size</h3>
             <div className="space-y-3">
               <div>
-                <label className="block text-xs text-gray-400 mb-1">Width</label>
+                <label className="block text-xs text-slate-500 dark:text-slate-400 mb-1">Width</label>
                 <input
                   type="number"
                   value={canvasSize.width}
                   onChange={(e) => handleCanvasSizeChange(parseInt(e.target.value), canvasSize.height)}
-                  className="w-full bg-gray-700 border border-gray-600 rounded px-2 py-1 text-sm text-white"
+                  className="w-full bg-slate-50 dark:bg-slate-700 border border-slate-300 dark:border-slate-600 rounded px-2 py-1 text-sm text-slate-800 dark:text-slate-200 focus:border-emerald-400 focus:ring-1 focus:ring-emerald-400"
                   min="100"
                   max="4000"
                 />
               </div>
               <div>
-                <label className="block text-xs text-gray-400 mb-1">Height</label>
+                <label className="block text-xs text-slate-500 dark:text-slate-400 mb-1">Height</label>
                 <input
                   type="number"
                   value={canvasSize.height}
                   onChange={(e) => handleCanvasSizeChange(canvasSize.width, parseInt(e.target.value))}
-                  className="w-full bg-gray-700 border border-gray-600 rounded px-2 py-1 text-sm text-white"
+                  className="w-full bg-slate-50 dark:bg-slate-700 border border-slate-300 dark:border-slate-600 rounded px-2 py-1 text-sm text-slate-800 dark:text-slate-200 focus:border-emerald-400 focus:ring-1 focus:ring-emerald-400"
                   min="100"
                   max="4000"
                 />
@@ -430,29 +432,29 @@ export function EditorPage() {
               
               {/* Quick size presets */}
               <div className="space-y-1">
-                <div className="text-xs text-gray-400">Quick sizes:</div>
+                <div className="text-xs text-slate-500 dark:text-slate-400">Quick sizes:</div>
                 <div className="grid grid-cols-2 gap-1">
                   <button 
                     onClick={() => handleCanvasSizeChange(1920, 1080)}
-                    className="text-xs bg-gray-700 hover:bg-gray-600 px-2 py-1 rounded"
+                    className="text-xs bg-slate-100 dark:bg-slate-700 hover:bg-emerald-100 dark:hover:bg-emerald-900 hover:text-emerald-700 dark:hover:text-emerald-300 px-2 py-1 rounded border border-slate-200 dark:border-slate-600 transition-colors"
                   >
                     HD
                   </button>
                   <button 
                     onClick={() => handleCanvasSizeChange(1080, 1080)}
-                    className="text-xs bg-gray-700 hover:bg-gray-600 px-2 py-1 rounded"
+                    className="text-xs bg-slate-100 dark:bg-slate-700 hover:bg-emerald-100 dark:hover:bg-emerald-900 hover:text-emerald-700 dark:hover:text-emerald-300 px-2 py-1 rounded border border-slate-200 dark:border-slate-600 transition-colors"
                   >
                     Square
                   </button>
                   <button 
                     onClick={() => handleCanvasSizeChange(2048, 1536)}
-                    className="text-xs bg-gray-700 hover:bg-gray-600 px-2 py-1 rounded"
+                    className="text-xs bg-slate-100 dark:bg-slate-700 hover:bg-emerald-100 dark:hover:bg-emerald-900 hover:text-emerald-700 dark:hover:text-emerald-300 px-2 py-1 rounded border border-slate-200 dark:border-slate-600 transition-colors"
                   >
                     4:3
                   </button>
                   <button 
                     onClick={() => handleCanvasSizeChange(1920, 1440)}
-                    className="text-xs bg-gray-700 hover:bg-gray-600 px-2 py-1 rounded"
+                    className="text-xs bg-slate-100 dark:bg-slate-700 hover:bg-emerald-100 dark:hover:bg-emerald-900 hover:text-emerald-700 dark:hover:text-emerald-300 px-2 py-1 rounded border border-slate-200 dark:border-slate-600 transition-colors"
                   >
                     Print
                   </button>
@@ -464,7 +466,7 @@ export function EditorPage() {
           {/* Object Properties */}
           {selectedObject && (
             <div className="mb-6">
-              <h3 className="text-sm font-semibold text-gray-300 mb-3">
+              <h3 className="text-sm font-semibold text-slate-700 dark:text-slate-300 mb-3">
                 {selectedObject.type} Properties
               </h3>
               
@@ -472,7 +474,7 @@ export function EditorPage() {
               <div className="space-y-2">
                 <div className="grid grid-cols-2 gap-2">
                   <div>
-                    <label className="block text-xs text-gray-400 mb-1">X</label>
+                    <label className="block text-xs text-slate-500 dark:text-slate-400 mb-1">X</label>
                     <input
                       type="number"
                       value={Math.round(selectedObject.left || 0)}
@@ -480,11 +482,11 @@ export function EditorPage() {
                         selectedObject.set('left', parseInt(e.target.value));
                         canvasRef.current?.renderAll();
                       }}
-                      className="w-full bg-gray-700 border border-gray-600 rounded px-2 py-1 text-xs text-white"
+                      className="w-full bg-slate-50 dark:bg-slate-700 border border-slate-300 dark:border-slate-600 rounded px-2 py-1 text-xs text-slate-800 dark:text-slate-200 focus:border-emerald-400"
                     />
                   </div>
                   <div>
-                    <label className="block text-xs text-gray-400 mb-1">Y</label>
+                    <label className="block text-xs text-slate-500 dark:text-slate-400 mb-1">Y</label>
                     <input
                       type="number"
                       value={Math.round(selectedObject.top || 0)}
@@ -492,14 +494,14 @@ export function EditorPage() {
                         selectedObject.set('top', parseInt(e.target.value));
                         canvasRef.current?.renderAll();
                       }}
-                      className="w-full bg-gray-700 border border-gray-600 rounded px-2 py-1 text-xs text-white"
+                      className="w-full bg-slate-50 dark:bg-slate-700 border border-slate-300 dark:border-slate-600 rounded px-2 py-1 text-xs text-slate-800 dark:text-slate-200 focus:border-emerald-400"
                     />
                   </div>
                 </div>
                 
                 {/* Rotation */}
                 <div>
-                  <label className="block text-xs text-gray-400 mb-1">Rotation</label>
+                  <label className="block text-xs text-slate-500 dark:text-slate-400 mb-1">Rotation</label>
                   <input
                     type="range"
                     min="0"
@@ -509,9 +511,9 @@ export function EditorPage() {
                       selectedObject.rotate(parseInt(e.target.value));
                       canvasRef.current?.renderAll();
                     }}
-                    className="w-full"
+                    className="w-full h-2 bg-slate-200 dark:bg-slate-600 rounded-lg appearance-none cursor-pointer slider"
                   />
-                  <div className="text-xs text-gray-400 text-center">
+                  <div className="text-xs text-slate-500 dark:text-slate-400 text-center">
                     {Math.round(selectedObject.angle || 0)}°
                   </div>
                 </div>
@@ -521,15 +523,15 @@ export function EditorPage() {
 
           {/* Pages Section */}
           <div>
-            <h3 className="text-sm font-semibold text-gray-300 mb-3">Pages</h3>
+            <h3 className="text-sm font-semibold text-slate-700 dark:text-slate-300 mb-3">Pages</h3>
             <div className="space-y-2">
-              <div className="bg-gray-700 rounded p-2 border border-primary-600">
-                <div className="text-sm">Page 1</div>
-                <div className="text-xs text-gray-400">
+              <div className="bg-emerald-50 dark:bg-emerald-900/20 rounded p-2 border border-emerald-300 dark:border-emerald-700">
+                <div className="text-sm text-slate-800 dark:text-slate-200">Page 1</div>
+                <div className="text-xs text-slate-500 dark:text-slate-400">
                   {canvasSize.width} × {canvasSize.height}
                 </div>
               </div>
-              <button className="w-full border-2 border-dashed border-gray-600 rounded p-2 text-sm text-gray-400 hover:border-gray-500 transition-colors">
+              <button className="w-full border-2 border-dashed border-slate-300 dark:border-slate-600 rounded p-2 text-sm text-slate-500 dark:text-slate-400 hover:border-emerald-300 dark:hover:border-emerald-600 hover:text-emerald-600 dark:hover:text-emerald-400 transition-colors">
                 + Add Page
               </button>
             </div>

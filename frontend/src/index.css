@@ -12,3 +12,52 @@ body {
 * {
   box-sizing: border-box;
 }
+
+/* Custom range slider styling */
+.slider::-webkit-slider-thumb {
+  appearance: none;
+  height: 16px;
+  width: 16px;
+  border-radius: 50%;
+  background: #10b981;
+  cursor: pointer;
+  border: 2px solid #ffffff;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+.slider::-moz-range-thumb {
+  height: 16px;
+  width: 16px;
+  border-radius: 50%;
+  background: #10b981;
+  cursor: pointer;
+  border: 2px solid #ffffff;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+.slider::-webkit-slider-track {
+  background: #e2e8f0;
+  border-radius: 4px;
+}
+
+.slider::-moz-range-track {
+  background: #e2e8f0;
+  border-radius: 4px;
+}
+
+/* Dark mode slider styling */
+.dark .slider::-webkit-slider-thumb {
+  border: 2px solid #1e293b;
+}
+
+.dark .slider::-moz-range-thumb {
+  border: 2px solid #1e293b;
+}
+
+.dark .slider::-webkit-slider-track {
+  background: #475569;
+}
+
+.dark .slider::-moz-range-track {
+  background: #475569;
+}
